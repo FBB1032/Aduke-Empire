@@ -1,0 +1,378 @@
+MVP spec — Aduke Empire (e-commerce React + Supabase)
+
+Goal: give another AI (or developer) a single, actionable spec to implement a minimal, production-ready MVP for the Aduke Empire store (Abayas, Scarves, Jallabiyas) with admin product upload backed by Supabase and deployed to Vercel.
+
+
+---
+
+1 — High level summary
+
+An accessible, mobile-first React (Vite + TypeScript) storefront with:
+
+Public pages: Home, Category pages (Abaya, Scarf, Jallabiya), Product Details, Footer, Sticky Navbar.
+
+Admin area: login (Supabase Auth), admin panel to add/edit/delete products and upload images.
+
+Data & auth: Supabase (DB + Auth + Storage) as the single backend.
+
+Buy flow: “Buy Now” on Product Details opens WhatsApp chat prefilled with product name & price.
+
+Deploy: frontend on Vercel. Supabase hosted DB.
+
+
+
+---
+
+2 — Acceptance criteria / What "done" looks like
+
+Users can view Home, category listings, and product detail pages populated from Supabase.
+
+Admin can log in with email/password and add new products (including uploading image to Supabase Storage), edit and delete products.
+
+“Show More Details” from listings navigates to product page; product page has a WhatsApp “Buy Now” link with the product name and price.
+
+Navbar sticky at top; footer visible on all pages.
+
+Environment config uses .env with VITE_ variables; app builds and deploys on Vercel.
+
+
+
+---
+
+3 — Data model (Supabase / PostgreSQL)
+
+Table products (SQL to run in Supabase SQL editor):
+
+CREATE TABLE public.products (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name TEXT NOT NULL,
+  price INTEGER NOT NULL,
+  image TEXT NOT NULL, -- URL from Supabase Storage
+  category TEXT NOT NULL, -- 'abaya' | 'scarf' | 'jallabiya'
+  color TEXT,
+  size TEXT,
+  isBestSeller BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+Optional admin users: use Supabase Auth (no separate admins table for MVP). Add admin user via Supabase Dashboard → Authentication → Users.
+
+Sample CSV header for import:
+
+name,price,image,category,color,size,isBestSeller
+Luxury Black Abaya,35000,/images/abaya1.jpg,abaya,Black,M,true
+
+
+---
+
+4 — Project structure (recommended)
+
+src/
+  components/
+    Navbar.tsx
+    Footer.tsx
+    AdminRoute.tsx
+  pages/
+    Home/Home.tsx
+    Abaya/Abaya.tsx
+    Scarf/Scarf.tsx
+    Jallabiya/Jallabiya.tsx
+    ProductDetails.tsx
+    Admin/
+      AdminLogin.tsx
+      AdminPanel.tsx
+      AddProduct.tsx
+      ManageProducts.tsx
+  supabaseClient.ts
+  main.tsx
+  App.tsx
+.env
+
+
+---
+
+5 — Environment vars (Vite)
+
+Create .env at project root with:
+
+VITE_SUPABASE_URL=https://<PROJECT>.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon-public-key>
+VITE_WHATSAPP_PHONE=2348154538190
+
+(Use import.meta.env.VITE_* to access in code.)
+
+
+---
+
+6 — Supabase setup steps
+
+1. Create project on supabase.com.
+
+
+2. Create products table (SQL above).
+
+
+3. Create a Storage bucket product-images (public or signed URLs).
+
+
+4. Add an admin user in Auth (email/password).
+
+
+5. Copy Project URL and anon key into .env.
+
+
+
+
+---
+
+7 — Core pages & routes (React Router)
+
+/ → Home (hero, categories, best-sellers)
+
+/abaya → Abaya listing (infinite-scroll/pagination)
+
+/scarf → Scarf listing
+
+/jallabiya → Jallabiya listing
+
+/product/:id → ProductDetails (Buy via WhatsApp)
+
+/admin-login → AdminLogin
+
+/admin → AdminPanel (protected)
+
+
+Admin sub-routes:
+
+/admin/add-product → Add product (upload image)
+
+/admin/products → Manage (edit/delete) products
+
+
+
+---
+
+8 — Important UI behaviors & details
+
+Navbar: sticky top-0, calligraphic brand font (Great Vibes), responsive links.
+
+Category listings: product cards with image, title, price, “Show More Details” (link to /product/:id).
+
+Product card clicks should navigate, not open modal; product-details separate page.
+
+ProductDetails: shows medium-sized image, price, color, size, Best Seller badge; “Buy Now via WhatsApp” button builds https://wa.me/<phone>?text=<msg> with message: I will love to purchase <name> for ₦<price>.
+
+Admin: only accessible after Supabase auth (use supabase.auth.getSession() to check). Redirect to /admin-login if not logged in.
+
+Image upload: Admin uploads image to Supabase Storage; store the returned public URL in products.image.
+
+
+
+---
+
+9 — Important code snippets (starter)
+
+supabaseClient.ts
+
+import { createClient } from '@supabase/supabase-js';
+
+export const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL as string,
+  import.meta.env.VITE_SUPABASE_ANON_KEY as string
+);
+
+Fetch products by category (example)
+
+const { data, error } = await supabase
+  .from('products')
+  .select('*')
+  .eq('category', 'abaya')
+  .order('created_at', { ascending: false })
+  .limit(20);
+
+Insert product (Admin)
+
+await supabase.from('products').insert([{
+  name, price: Number(price), image: imageUrl, category, color, size, isBestSeller
+}]);
+
+Upload image to Supabase Storage
+
+const file = input.files[0];
+const path = `product-images/${Date.now()}_${file.name}`;
+const { data, error } = await supabase.storage.from('product-images').upload(path, file);
+const publicUrl = supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+
+
+---
+
+10 — Admin authentication logic
+
+AdminLogin calls supabase.auth.signInWithPassword({ email, password }).
+
+After success, navigate to /admin.
+
+For protected routes, create AdminRoute component that checks supabase.auth.getSession() and returns <Navigate to="/admin-login" /> if no session.
+
+
+
+---
+
+11 — Infinite scroll / pagination (category pages)
+
+Load initial N items (e.g., 12).
+
+On scroll near bottom, request next page using .range(start, end) or .limit().offset() (or .select().order().range() with Supabase).
+
+Keep UI skeleton/loader while loading next page.
+
+
+
+---
+
+12 — Error handling & validation
+
+Validate admin form fields (non-empty name, numeric price, category).
+
+Handle Supabase errors and show user-friendly messages.
+
+Ensure image upload errors are handled and preview shown before saving.
+
+
+
+---
+
+13 — Accessibility & responsive tips
+
+Buttons accessible (aria-label where necessary).
+
+Images with alt attributes.
+
+Mobile-first grid using Tailwind (or CSS): 2 columns mobile, 4–5 on large screens.
+
+Focus states visible.
+
+
+
+---
+
+14 — Deployment (Vercel)
+
+Add project to Vercel, connect Git repo.
+
+Set Vercel environment variables using the same keys (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_WHATSAPP_PHONE).
+
+Build command: npm run build (Vite default).
+
+Output directory: dist.
+
+
+
+---
+
+15 — Developer handoff checklist for another AI
+
+Give the other AI (or dev) this list of deliverables to implement and verify:
+
+1. Project scaffolding: Vite + React + TypeScript + Tailwind CSS.
+
+
+2. supabaseClient.ts using import.meta.env.
+
+
+3. .env format for local dev (VITE_ prefix).
+
+
+4. Implement pages: Home, Abaya, Scarf, Jallabiya, ProductDetails, AdminLogin, AdminPanel, AddProduct, ManageProducts.
+
+
+5. Implement components: Navbar (sticky), Footer, AdminRoute.
+
+
+6. Supabase DB: create products table (SQL provided).
+
+
+7. Supabase Storage: bucket product-images and image upload flow for admin.
+
+
+8. Admin auth: signInWithPassword, session checks, logout.
+
+
+9. Buy flow: WhatsApp link with encoded message including product name and price. Use the phone number in env var.
+
+
+10. Infinite scroll on category pages.
+
+
+11. Tests: manually verify product CRUD (admin), public listing, product detail, WhatsApp link, protected admin route.
+
+
+12. Deployment to Vercel with env vars configured.
+
+
+
+
+---
+
+16 — Minimal UI/UX copy (for components)
+
+Navbar brand: “Aduke’s Empire”
+
+Hero CTA: “Shop Abayas”
+
+Category CTA: “Explore”
+
+Product CTA listing: “Show More Details”
+
+Product page CTA: “Buy Now via WhatsApp”
+
+Admin: “Add New Product”, “Manage Products”, “Logout”
+
+
+
+---
+
+17 — Example acceptance test cases (QA)
+
+1. Public user loads / → Hero visible, categories visible, best sellers loaded from Supabase.
+
+
+2. Click “Abaya” → /abaya → lists abayas, infinite scroll loads more on scroll.
+
+
+3. Click product card → /product/:id → product details show correct name, price, image, “Buy Now via WhatsApp” opens WhatsApp web with message.
+
+
+4. Admin logs in at /admin-login → redirected to /admin.
+
+
+5. Admin uploads an image and adds a product → new product appears on /admin/products and in public listing after refresh.
+
+
+6. Admin can edit and delete products and changes reflect in public pages.
+
+
+
+
+---
+
+18 — Extra notes & constraints
+
+Keep secrets out of git; add .env to .gitignore.
+
+For production, consider restricting admin routes server-side or with Row Level Security (RLS) in Supabase as an upgrade.
+
+Use id returned by Supabase as string or number consistently. In TS, use id: number or string depending on how Supabase returns bigints — convert to number when safe.
+
+
+
+---
+
+If you want, I can now:
+
+Output all component & page files (full source) ready to paste into the repo, or
+
+Produce a step-by-step script the other AI can run to scaffold the project (commands to run, files to create).
+
+
+Which of those would you like next?
