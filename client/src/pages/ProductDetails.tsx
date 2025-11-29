@@ -14,12 +14,7 @@ export default function ProductDetails() {
   const productId = params?.id;
 
   const { data: product, isLoading, error } = useQuery<Product>({
-    queryKey: ["/api/products", productId],
-    queryFn: async () => {
-      const res = await fetch(`/api/products/${productId}`);
-      if (!res.ok) throw new Error("Product not found");
-      return res.json();
-    },
+    queryKey: [`/api/products/${productId}`],
     enabled: !!productId,
   });
 
@@ -34,8 +29,14 @@ export default function ProductDetails() {
 
   const generateWhatsAppLink = () => {
     if (!product) return "#";
+    const details = [];
+    details.push(`Product: ${product.name}`);
+    details.push(`Price: ${formatPrice(product.price)}`);
+    if (product.color) details.push(`Color: ${product.color}`);
+    if (product.size) details.push(`Size: ${product.size}`);
+    
     const message = encodeURIComponent(
-      `I will love to purchase ${product.name} for ${formatPrice(product.price)}`
+      `I will love to purchase:\n\n${details.join('\n')}\n\nPlease confirm availability.`
     );
     return `https://wa.me/${WHATSAPP_PHONE}?text=${message}`;
   };

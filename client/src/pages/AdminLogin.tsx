@@ -83,6 +83,7 @@ export default function AdminLogin() {
                           type="email"
                           placeholder="admin@adukesempire.com"
                           className="pl-10"
+                          autoComplete="email"
                           data-testid="input-email"
                           {...field}
                         />
@@ -105,6 +106,7 @@ export default function AdminLogin() {
                           type={showPassword ? "text" : "password"}
                           placeholder="Enter your password"
                           className="pl-10 pr-10"
+                          autoComplete="current-password"
                           data-testid="input-password"
                           {...field}
                         />

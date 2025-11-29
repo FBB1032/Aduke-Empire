@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/abaya", label: "Abaya" },
-  { href: "/scarf", label: "Scarf" },
-  { href: "/jallabiya", label: "Jallabiya" },
+  { href: "/", label: "Home", testId: "home" },
+  { href: "/abaya", label: "Abaya", testId: "abaya" },
+  { href: "/scarf", label: "Scarf", testId: "scarf" },
+  { href: "/jallabiya", label: "Jallabiya", testId: "jallabiya" },
 ];
 
 export function Navbar() {
@@ -38,7 +38,7 @@ export function Navbar() {
                       ? "bg-accent text-accent-foreground"
                       : "text-muted-foreground"
                   }`}
-                  data-testid={`link-nav-${link.label.toLowerCase()}`}
+                  data-testid={`link-nav-${link.testId}`}
                 >
                   {link.label}
                 </Button>
@@ -79,7 +79,7 @@ export function Navbar() {
                             ? "bg-accent text-accent-foreground"
                             : "text-muted-foreground"
                         }`}
-                        data-testid={`link-mobile-${link.label.toLowerCase()}`}
+                        data-testid={`link-mobile-${link.testId}`}
                       >
                         {link.label}
                       </Button>

@@ -25,24 +25,26 @@ export default function CategoryPage({ category }: CategoryPageProps) {
   const [hasMore, setHasMore] = useState(true);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const limit = 12;
+  const isInitialLoad = useRef(true);
 
   const { data, isLoading, isFetching } = useQuery<{ products: Product[]; total: number }>({
-    queryKey: ["/api/products", category, page],
-    queryFn: async () => {
-      const res = await fetch(`/api/products?category=${category}&page=${page}&limit=${limit}`);
-      if (!res.ok) throw new Error("Failed to fetch products");
-      return res.json();
-    },
+    queryKey: [`/api/products?category=${category}&page=${page}&limit=${limit}`],
   });
 
   useEffect(() => {
     if (data?.products) {
       if (page === 1) {
         setAllProducts(data.products);
+        isInitialLoad.current = false;
       } else {
-        setAllProducts((prev) => [...prev, ...data.products]);
+        setAllProducts((prev) => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newProducts = data.products.filter(p => !existingIds.has(p.id));
+          return [...prev, ...newProducts];
+        });
       }
-      setHasMore(allProducts.length + data.products.length < data.total);
+      const totalLoaded = page === 1 ? data.products.length : allProducts.length + data.products.length;
+      setHasMore(totalLoaded < data.total);
     }
   }, [data, page]);
 
@@ -50,29 +52,33 @@ export default function CategoryPage({ category }: CategoryPageProps) {
     setPage(1);
     setAllProducts([]);
     setHasMore(true);
+    isInitialLoad.current = true;
   }, [category]);
 
   const loadMore = useCallback(() => {
-    if (!isFetching && hasMore) {
+    if (!isFetching && hasMore && !isInitialLoad.current) {
       setPage((prev) => prev + 1);
     }
   }, [isFetching, hasMore]);
 
   useEffect(() => {
+    const currentRef = loadMoreRef.current;
+    if (!currentRef) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isFetching && hasMore) {
+        if (entries[0].isIntersecting && !isFetching && hasMore && !isInitialLoad.current) {
           loadMore();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1, rootMargin: "100px" }
     );
 
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
+    observer.observe(currentRef);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
   }, [loadMore, isFetching, hasMore]);
 
   return (
