@@ -6,12 +6,31 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
-  getProducts(category?: string, page?: number, limit?: number): Promise<{ products: Product[]; total: number }>;
+  getProducts(
+    category?: string,
+    page?: number,
+    limit?: number,
+    filters?: {
+      search?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      color?: string;
+      size?: string;
+    }
+  ): Promise<{ products: Product[]; total: number }>;
   getProductById(id: number): Promise<Product | undefined>;
   getBestSellers(limit?: number): Promise<Product[]>;
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: number, product: UpdateProduct): Promise<Product | undefined>;
   deleteProduct(id: number): Promise<boolean>;
+  
+  getProductStats?(): Promise<{
+    totalProducts: number;
+    productsByCategory: { category: string; count: number }[];
+    bestSellersCount: number;
+  }>;
+  getUniqueColors?(): Promise<string[]>;
+  getUniqueSizes?(): Promise<string[]>;
 }
 
 export class MemStorage implements IStorage {
