@@ -29,7 +29,7 @@ export function Footer() {
                 <SiWhatsapp className="w-4 h-4 text-white" />
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/adukes_empire9?igsh=MXhiMGhmbHRrMnZuaw%3D%3D&utm_source=qr"
                 className="w-9 h-9 rounded-full bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737] flex items-center justify-center hover-elevate"
                 aria-label="Instagram"
                 data-testid="link-instagram"

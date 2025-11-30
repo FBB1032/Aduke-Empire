@@ -1,6 +1,6 @@
 import { eq, desc, sql, and, ilike, gte, lte } from "drizzle-orm";
 import { db } from "./db";
-import { users, products } from "@shared/schema";
+import { users, products, images } from "@shared/schema";
 import type { User, InsertUser, Product, InsertProduct, UpdateProduct } from "@shared/schema";
 import type { IStorage } from "./storage";
 
@@ -93,8 +93,20 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
-  async createProduct(product: InsertProduct): Promise<Product> {
-    const [newProduct] = await db.insert(products).values(product).returning();
+  async createProduct(product: any): Promise<Product> {
+    // Create image first
+    const image = await this.createImage({
+      filename: product.image.originalname || "product-image",
+      data: product.image.buffer,
+      mimetype: product.image.mimetype || "image/jpeg",
+    });
+
+    // Create product with image ID
+    const { image: _, ...productData } = product;
+    const [newProduct] = await db.insert(products).values({
+      ...productData,
+      imageId: image.id,
+    }).returning();
     return newProduct;
   }
 
@@ -156,6 +168,18 @@ export class DatabaseStorage implements IStorage {
       .where(sql`${products.size} IS NOT NULL`);
     return result.map(r => r.size).filter((s): s is string => s !== null);
   }
+
+  async createImage(image: { filename: string; data: Buffer; mimetype: string }): Promise<{ id: number }> {
+    const [newImage] = await db.insert(images).values(image).returning({ id: images.id });
+    return newImage;
+  }
+
+  async getImageById(id: number): Promise<{ id: number; filename: string; data: Buffer; mimetype: string } | undefined> {
+    const [image] = await db.select().from(images).where(eq(images.id, id));
+    return image;
+  }
+
+
 }
 
 export const dbStorage = new DatabaseStorage();

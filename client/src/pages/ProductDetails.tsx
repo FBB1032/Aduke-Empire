@@ -32,9 +32,8 @@ export default function ProductDetails() {
     const details = [];
     details.push(`Product: ${product.name}`);
     details.push(`Price: ${formatPrice(product.price)}`);
-    if (product.color) details.push(`Color: ${product.color}`);
     if (product.size) details.push(`Size: ${product.size}`);
-    
+
     const message = encodeURIComponent(
       `I will love to purchase:\n\n${details.join('\n')}\n\nPlease confirm availability.`
     );
@@ -99,7 +98,7 @@ export default function ProductDetails() {
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
           <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted">
             <img
-              src={product.image}
+              src={`/api/images/${product.imageId}`}
               alt={product.name}
               className="w-full h-full object-cover"
               data-testid="img-product"
@@ -135,21 +134,10 @@ export default function ProductDetails() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {product.color && (
-                <div className="bg-card rounded-lg p-4 border border-card-border">
-                  <p className="text-sm text-muted-foreground mb-1">Color</p>
-                  <p 
-                    className="font-medium text-foreground"
-                    data-testid="text-product-color"
-                  >
-                    {product.color}
-                  </p>
-                </div>
-              )}
               {product.size && (
                 <div className="bg-card rounded-lg p-4 border border-card-border">
                   <p className="text-sm text-muted-foreground mb-1">Size</p>
-                  <p 
+                  <p
                     className="font-medium text-foreground"
                     data-testid="text-product-size"
                   >

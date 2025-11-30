@@ -28,7 +28,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardContent className="p-0">
         <div className="relative aspect-square overflow-hidden rounded-t-lg">
           <img
-            src={product.image}
+            src={`/api/images/${product.imageId}`}
             alt={product.name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"

@@ -5,7 +5,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   getProducts(
     category?: string,
     page?: number,
@@ -23,7 +23,10 @@ export interface IStorage {
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: number, product: UpdateProduct): Promise<Product | undefined>;
   deleteProduct(id: number): Promise<boolean>;
-  
+
+  createImage(image: { filename: string; data: Buffer; mimetype: string }): Promise<{ id: number }>;
+  getImageById(id: number): Promise<{ id: number; filename: string; data: Buffer; mimetype: string } | undefined>;
+
   getProductStats?(): Promise<{
     totalProducts: number;
     productsByCategory: { category: string; count: number }[];
@@ -34,6 +37,8 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  private images: Map<number, { id: number; filename: string; data: Buffer; mimetype: string }> = new Map();
+  private imageIdCounter: number = 1;
   private users: Map<string, User>;
   private products: Map<number, Product>;
   private productIdCounter: number;
@@ -57,11 +62,11 @@ export class MemStorage implements IStorage {
   }
 
   private initializeSampleProducts(): void {
-    const sampleProducts: InsertProduct[] = [
+    // For memory storage, we'll create products without images since this is just for testing
+    const sampleProducts = [
       {
         name: "Luxury Black Abaya",
         price: 35000,
-        image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop",
         category: "abaya",
         color: "Black",
         size: "M",
@@ -70,7 +75,6 @@ export class MemStorage implements IStorage {
       {
         name: "Elegant Navy Abaya",
         price: 38000,
-        image: "https://images.unsplash.com/photo-1590654879707-9a62ad10c5b4?q=80&w=800&auto=format&fit=crop",
         category: "abaya",
         color: "Navy Blue",
         size: "L",
@@ -79,7 +83,6 @@ export class MemStorage implements IStorage {
       {
         name: "Classic White Abaya",
         price: 32000,
-        image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=800&auto=format&fit=crop",
         category: "abaya",
         color: "White",
         size: "S",
@@ -88,7 +91,6 @@ export class MemStorage implements IStorage {
       {
         name: "Embroidered Cream Abaya",
         price: 45000,
-        image: "https://images.unsplash.com/photo-1585486386606-e95f8e4d95f4?q=80&w=800&auto=format&fit=crop",
         category: "abaya",
         color: "Cream",
         size: "M",
@@ -97,7 +99,6 @@ export class MemStorage implements IStorage {
       {
         name: "Premium Silk Scarf",
         price: 12000,
-        image: "https://images.unsplash.com/photo-1571513722275-4b41940f54b8?q=80&w=800&auto=format&fit=crop",
         category: "scarf",
         color: "Burgundy",
         size: "One Size",
@@ -106,7 +107,6 @@ export class MemStorage implements IStorage {
       {
         name: "Chiffon Floral Scarf",
         price: 8000,
-        image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop",
         category: "scarf",
         color: "Floral Print",
         size: "One Size",
@@ -115,7 +115,6 @@ export class MemStorage implements IStorage {
       {
         name: "Cotton Hijab Set",
         price: 15000,
-        image: "https://images.unsplash.com/photo-1602810316693-3667c854239a?q=80&w=800&auto=format&fit=crop",
         category: "scarf",
         color: "Assorted",
         size: "One Size",
@@ -124,7 +123,6 @@ export class MemStorage implements IStorage {
       {
         name: "Luxe Satin Scarf",
         price: 10000,
-        image: "https://images.unsplash.com/photo-1606907214106-93c7d65f0bd4?q=80&w=800&auto=format&fit=crop",
         category: "scarf",
         color: "Emerald Green",
         size: "One Size",
@@ -133,7 +131,6 @@ export class MemStorage implements IStorage {
       {
         name: "Traditional Gold Jallabiya",
         price: 55000,
-        image: "https://images.unsplash.com/photo-1585486386606-e95f8e4d95f4?q=80&w=800&auto=format&fit=crop",
         category: "jallabiya",
         color: "Gold",
         size: "L",
@@ -142,7 +139,6 @@ export class MemStorage implements IStorage {
       {
         name: "Modern Maroon Jallabiya",
         price: 48000,
-        image: "https://images.unsplash.com/photo-1590654879707-9a62ad10c5b4?q=80&w=800&auto=format&fit=crop",
         category: "jallabiya",
         color: "Maroon",
         size: "M",
@@ -151,7 +147,6 @@ export class MemStorage implements IStorage {
       {
         name: "Festive Emerald Jallabiya",
         price: 52000,
-        image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=800&auto=format&fit=crop",
         category: "jallabiya",
         color: "Emerald",
         size: "XL",
@@ -160,7 +155,6 @@ export class MemStorage implements IStorage {
       {
         name: "Royal Purple Jallabiya",
         price: 60000,
-        image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop",
         category: "jallabiya",
         color: "Purple",
         size: "L",
@@ -173,8 +167,9 @@ export class MemStorage implements IStorage {
       this.products.set(id, {
         ...product,
         id,
+        imageId: 0, // Default image ID for memory storage
         createdAt: new Date(),
-      });
+      } as Product);
     });
   }
 
@@ -231,12 +226,22 @@ export class MemStorage implements IStorage {
   }
 
   async createProduct(product: InsertProduct): Promise<Product> {
+    // Create image first - convert File to Buffer
+    const buffer = Buffer.from(await product.image.arrayBuffer());
+    const image = await this.createImage({
+      filename: product.image.name,
+      data: buffer,
+      mimetype: product.image.type,
+    });
+
     const id = this.productIdCounter++;
+    const { image: _, ...productData } = product;
     const newProduct: Product = {
-      ...product,
+      ...productData,
       id,
+      imageId: image.id,
       createdAt: new Date(),
-    };
+    } as Product;
     this.products.set(id, newProduct);
     return newProduct;
   }
@@ -255,6 +260,16 @@ export class MemStorage implements IStorage {
 
   async deleteProduct(id: number): Promise<boolean> {
     return this.products.delete(id);
+  }
+
+  async createImage(image: { filename: string; data: Buffer; mimetype: string }): Promise<{ id: number }> {
+    const id = this.imageIdCounter++;
+    this.images.set(id, { id, ...image });
+    return { id };
+  }
+
+  async getImageById(id: number): Promise<{ id: number; filename: string; data: Buffer; mimetype: string } | undefined> {
+    return this.images.get(id);
   }
 }
 

@@ -4,31 +4,43 @@ import { CategoryCard } from "@/components/CategoryCard";
 import { ProductGrid } from "@/components/ProductGrid";
 import type { Product } from "@shared/schema";
 
-const categories = [
-  {
-    title: "Abayas",
-    description: "Elegant flowing robes crafted with premium fabrics for everyday grace",
-    image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1974&auto=format&fit=crop",
-    href: "/abaya",
-  },
-  {
-    title: "Scarves",
-    description: "Luxurious hijabs and scarves in silk, chiffon, and premium cotton",
-    image: "https://images.unsplash.com/photo-1571513722275-4b41940f54b8?q=80&w=1974&auto=format&fit=crop",
-    href: "/scarf",
-  },
-  {
-    title: "Jallabiyas",
-    description: "Traditional garments reimagined with contemporary elegance",
-    image: "https://images.unsplash.com/photo-1585486386606-e95f8e4d95f4?q=80&w=1974&auto=format&fit=crop",
-    href: "/jallabiya",
-  },
-];
-
 export default function Home() {
   const { data: bestSellers, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/products/bestsellers"],
   });
+
+  const { data: abayaProducts } = useQuery<{ products: Product[] }>({
+    queryKey: ["/api/products", { category: "abaya", limit: 1 }],
+  });
+
+  const { data: scarfProducts } = useQuery<{ products: Product[] }>({
+    queryKey: ["/api/products", { category: "scarf", limit: 1 }],
+  });
+
+  const { data: jallabiyaProducts } = useQuery<{ products: Product[] }>({
+    queryKey: ["/api/products", { category: "jallabiya", limit: 1 }],
+  });
+
+  const categories = [
+    {
+      title: "Abayas",
+      description: "Elegant flowing robes crafted with premium fabrics for everyday grace",
+      image: "https://i.pinimg.com/736x/34/8d/73/348d73a33ac64deb233af0c08dd197fe.jpg",
+      href: "/abaya",
+    },
+    {
+      title: "Scarves",
+      description: "Luxurious hijabs and scarves in silk, chiffon, and premium cotton",
+      image: "https://i.pinimg.com/1200x/3c/d5/1f/3cd51fedc207bf8ba46d5a2f75a0afeb.jpg",
+      href: "/scarf",
+    },
+    {
+      title: "Jallabiyas",
+      description: "Traditional garments reimagined with contemporary elegance",
+      image: "https://i.pinimg.com/736x/8c/a0/d6/8ca0d6a8cf7f7c3de964406cdbec8501.jpg",
+      href: "/jallabiya",
+    },
+  ];
 
   return (
     <div className="min-h-screen" data-testid="page-home">
@@ -104,7 +116,7 @@ export default function Home() {
             </div>
             <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1983&auto=format&fit=crop"
+                src={abayaProducts?.products[0] ? `/api/images/${abayaProducts.products[0].imageId}` : "https://i.pinimg.com/1200x/74/bb/9b/74bb9bf82e9c78675d96b8c117b06247.jpg"}
                 alt="Elegant modest fashion"
                 className="w-full h-full object-cover"
               />

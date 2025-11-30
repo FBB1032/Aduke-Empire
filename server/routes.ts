@@ -2,11 +2,27 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { dbStorage } from "./dbStorage";
 import { insertProductSchema, updateProductSchema } from "@shared/schema";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+// Configure multer for file uploads
+const storage = multer.memoryStorage();
+
+const upload = multer({ storage });
 
 declare module "express-session" {
   interface SessionData {
     userId?: string;
     isAdmin?: boolean;
+  }
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      file?: Express.Multer.File;
+    }
   }
 }
 
@@ -20,7 +36,7 @@ export async function registerRoutes(
       const { username, password } = req.body;
       
       if (!username || !password) {
-        return res.status(400).json({ error: "Email and password are required" });
+        return res.status(400).json({ error: "Username and password are required" });
       }
       
       const user = await dbStorage.getUserByUsername(username);
@@ -132,17 +148,42 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/products", requireAuth, async (req, res) => {
+  app.post("/api/products", requireAuth, upload.single("image"), async (req, res) => {
     try {
-      const parsed = insertProductSchema.safeParse(req.body);
+      const { name, price, category, color, size, isBestSeller } = req.body;
+      const imageFile = req.file;
+
+      if (!imageFile) {
+        return res.status(400).json({ error: "Image file is required" });
+      }
+
+      const productData = {
+        name,
+        price: parseInt(price),
+        category,
+        color: color || "",
+        size: size || "",
+        isBestSeller: isBestSeller === "true",
+        image: imageFile,
+      };
+
+      // Validate without image since it's handled separately
+      const parsed = insertProductSchema.omit({ image: true }).safeParse({
+        name: productData.name,
+        price: productData.price,
+        category: productData.category,
+        color: productData.color,
+        size: productData.size,
+        isBestSeller: productData.isBestSeller,
+      });
       if (!parsed.success) {
-        return res.status(400).json({ 
-          error: "Invalid product data", 
-          details: parsed.error.errors 
+        return res.status(400).json({
+          error: "Invalid product data",
+          details: parsed.error.errors
         });
       }
-      
-      const product = await dbStorage.createProduct(parsed.data);
+
+      const product = await dbStorage.createProduct(productData as any);
       res.status(201).json(product);
     } catch (error) {
       console.error("Create product error:", error);
@@ -150,26 +191,55 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/products/:id", requireAuth, async (req, res) => {
+  app.patch("/api/products/:id", requireAuth, upload.single("image"), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid product ID" });
       }
-      
-      const parsed = updateProductSchema.safeParse(req.body);
+
+      const { name, price, category, color, size, isBestSeller } = req.body;
+      const imageFile = req.file;
+
+      const updateData: any = {
+        name,
+        price: price ? parseInt(price) : undefined,
+        category,
+        color,
+        size,
+        isBestSeller: isBestSeller ? isBestSeller === "true" : undefined,
+      };
+
+      // If a new image was uploaded, create it and update imageId
+      if (imageFile) {
+        const image = await dbStorage.createImage({
+          filename: imageFile.originalname || "product-image",
+          data: imageFile.buffer,
+          mimetype: imageFile.mimetype,
+        });
+        updateData.imageId = image.id;
+      }
+
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === undefined) {
+          delete updateData[key];
+        }
+      });
+
+      const parsed = updateProductSchema.safeParse(updateData);
       if (!parsed.success) {
-        return res.status(400).json({ 
-          error: "Invalid product data", 
-          details: parsed.error.errors 
+        return res.status(400).json({
+          error: "Invalid product data",
+          details: parsed.error.errors
         });
       }
-      
+
       const product = await dbStorage.updateProduct(id, parsed.data);
       if (!product) {
         return res.status(404).json({ error: "Product not found" });
       }
-      
+
       res.json(product);
     } catch (error) {
       console.error("Update product error:", error);
@@ -183,16 +253,57 @@ export async function registerRoutes(
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid product ID" });
       }
-      
+
       const deleted = await dbStorage.deleteProduct(id);
       if (!deleted) {
         return res.status(404).json({ error: "Product not found" });
       }
-      
+
       res.json({ success: true, message: "Product deleted" });
     } catch (error) {
       console.error("Delete product error:", error);
       res.status(500).json({ error: "Failed to delete product" });
+    }
+  });
+
+  // Image upload endpoint
+  app.post("/api/upload", requireAuth, upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const { buffer, originalname, mimetype } = req.file;
+      const image = await dbStorage.createImage({
+        filename: originalname,
+        data: Buffer.from(buffer),
+        mimetype,
+      });
+      res.json({ id: image.id });
+    } catch (error) {
+      console.error("Upload error:", error);
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
+  // Image serving endpoint
+  app.get("/api/images/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid image ID" });
+      }
+
+      const image = await dbStorage.getImageById(id);
+      if (!image) {
+        return res.status(404).json({ error: "Image not found" });
+      }
+
+      res.set("Content-Type", image.mimetype);
+      res.send(image.data);
+    } catch (error) {
+      console.error("Get image error:", error);
+      res.status(500).json({ error: "Failed to fetch image" });
     }
   });
 
