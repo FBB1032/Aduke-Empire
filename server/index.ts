@@ -1,6 +1,8 @@
 import express from "express";
 import { createServer } from "http";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import cors from "cors";
 import path from "path";
 import { db } from "./db.js";
 import { sql } from "drizzle-orm";
@@ -12,15 +14,31 @@ const PORT = 5002;
 const __dirname = path.resolve();
 
 // Middleware
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://aduke-empire-8vnh-n9tlxreiy-fahd-badamasis-projects.vercel.app']
+    : 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Session middleware
+const PgSession = connectPgSimple(session);
 app.use(session({
+  store: new PgSession({
+    conString: process.env.DATABASE_URL,
+    tableName: 'session',
+    createTableIfMissing: true,
+  }),
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // Set to true in production with HTTPS
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
 }));
 
 // Create HTTP server
