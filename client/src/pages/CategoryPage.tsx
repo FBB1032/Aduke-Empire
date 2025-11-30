@@ -14,9 +14,9 @@ const categoryDescriptions: Record<Category, string> = {
 };
 
 const categoryImages: Record<Category, string> = {
-  abaya: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=1974&auto=format&fit=crop",
-  scarf: "https://images.unsplash.com/photo-1571513722275-4b41940f54b8?q=80&w=1974&auto=format&fit=crop",
-  jallabiya: "https://images.unsplash.com/photo-1585486386606-e95f8e4d95f4?q=80&w=1974&auto=format&fit=crop",
+  abaya: "https://i.pinimg.com/736x/34/8d/73/348d73a33ac64deb233af0c08dd197fe.jpg",
+  scarf: "https://i.pinimg.com/1200x/3c/d5/1f/3cd51fedc207bf8ba46d5a2f75a0afeb.jpg",
+  jallabiya: "https://i.pinimg.com/736x/8c/a0/d6/8ca0d6a8cf7f7c3de964406cdbec8501.jpg",
 };
 
 export default function CategoryPage({ category }: CategoryPageProps) {
