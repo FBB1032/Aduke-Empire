@@ -55,16 +55,6 @@ export default function AdminPanel() {
 
   const { data: authData, isLoading: checkingAuth } = useQuery<{ authenticated: boolean }>({
     queryKey: ["/api/auth/check"],
-    queryFn: async () => {
-      const res = await fetch("/api/auth/check", { credentials: "include" });
-      if (res.status === 401) {
-        return { authenticated: false };
-      }
-      if (!res.ok) {
-        throw new Error(`${res.status}: ${res.statusText}`);
-      }
-      return await res.json();
-    },
   });
 
   const { data: productsData, isLoading: loadingProducts } = useQuery<{ products: Product[] }>({

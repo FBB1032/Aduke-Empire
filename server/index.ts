@@ -10,26 +10,30 @@ import { registerRoutes } from "./routes.js";
 import "dotenv/config";
 
 const app = express();
-app.set("trust proxy", 1); // REQUIRED for secure cookies behind Railway proxy
-const PORT = 5002;
+const PORT = process.env.PORT || 5002;
+
+// Fix __dirname in ESM
 const __dirname = path.resolve();
 
 // --------------------
-// 🛠 FIXED CORS
+// CORS
 // --------------------
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
+    credentials: true, // Important: allows cookies to be sent
   })
 );
 
+// --------------------
+// JSON & URL-encoded
+// --------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --------------------
-// 🛠 FIXED SESSION COOKIE (sameSite: "none")
+// Session Store
 // --------------------
 let sessionStore;
 try {
@@ -39,48 +43,51 @@ try {
     tableName: "session",
     createTableIfMissing: true,
   });
-} catch (error) {
-  console.log("Database not available, using memory store for sessions");
+} catch (err) {
+  console.log("DB unavailable, falling back to memory store for sessions");
   const MemoryStore = require("memorystore")(session);
-  sessionStore = new MemoryStore({
-    checkPeriod: 86400000,
-  });
+  sessionStore = new MemoryStore({ checkPeriod: 86400000 });
 }
 
+// --------------------
+// Express Session
+// --------------------
 app.use(
   session({
     store: sessionStore,
-    secret: process.env.SESSION_SECRET || "your-secret-key",
+    secret: process.env.SESSION_SECRET || "super-secret-key",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // HTTPS required
-      httpOnly: true,
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Changed from "none" to "strict" for Railway
-      domain: process.env.NODE_ENV === "production" ? ".railway.app" : undefined, // Set domain for Railway
-      maxAge: 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production", // HTTPS only in prod
+      httpOnly: true, // prevent JS access to cookie
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
 );
 
 // --------------------
-// Server Initialization
+// API Routes
 // --------------------
-const httpServer = createServer(app);
+// Make sure your login route uses req.session correctly
+registerRoutes(app);
 
-// API routes
-registerRoutes(httpServer, app);
-
-// Static files (React)
-app.use(express.static(path.join(process.cwd(), "dist")));
+// --------------------
+// Static Frontend
+// --------------------
+const reactDist = path.join(process.cwd(), "dist");
+app.use(express.static(reactDist));
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // SPA fallback for React Router / Wouter
 app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.join(process.cwd(), "dist", "index.html"));
+  res.sendFile(path.join(reactDist, "index.html"));
 });
 
-// Example DB test route
+// --------------------
+// Test DB Route
+// --------------------
 app.get("/api/test", async (req, res) => {
   try {
     const result = await db.execute(sql`SELECT 1`);
@@ -90,10 +97,9 @@ app.get("/api/test", async (req, res) => {
   }
 });
 
-async function startServer() {
-  httpServer.listen(PORT, () =>
-    console.log(`Server running on port ${PORT}`)
-  );
-}
-
-startServer();
+// --------------------
+// Start Server
+// --------------------
+createServer(app).listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
+);

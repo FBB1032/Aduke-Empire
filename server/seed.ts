@@ -1,130 +1,49 @@
 import { db } from "./db";
 import { users, products, images } from "@shared/schema";
-import { sql, eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import bcrypt from "bcrypt";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import "dotenv/config";
 
+// Fix __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-
-  const sampleProducts = [
-    {
-      name: "Luxury Black Abaya",
-      price: 35000,
-      imageId: 1,
-      category: "abaya",
-      color: "Black",
-      size: "M",
-      isBestSeller: true,
-    },
-    {
-      name: "Elegant Navy Abaya",
-      price: 38000,
-      imageId: 2,
-      category: "abaya",
-      color: "Navy Blue",
-      size: "L",
-      isBestSeller: true,
-    },
-    {
-      name: "Classic White Abaya",
-      price: 32000,
-      imageId: 3,
-      category: "abaya",
-      color: "White",
-      size: "S",
-      isBestSeller: false,
-    },
-    {
-      name: "Embroidered Cream Abaya",
-      price: 45000,
-      imageId: 4,
-      category: "abaya",
-      color: "Cream",
-      size: "M",
-      isBestSeller: true,
-    },
-    {
-      name: "Premium Silk Scarf",
-      price: 12000,
-      imageId: 5,
-      category: "scarf",
-      color: "Burgundy",
-      size: "One Size",
-      isBestSeller: true,
-    },
-    {
-      name: "Chiffon Floral Scarf",
-      price: 8000,
-      imageId: 6,
-      category: "scarf",
-      color: "Floral Print",
-      size: "One Size",
-      isBestSeller: false,
-    },
-    {
-      name: "Cotton Hijab Set",
-      price: 15000,
-      imageId: 7,
-      category: "scarf",
-      color: "Assorted",
-      size: "One Size",
-      isBestSeller: true,
-    },
-    {
-      name: "Luxe Satin Scarf",
-      price: 10000,
-      imageId: 8,
-      category: "scarf",
-      color: "Emerald Green",
-      size: "One Size",
-      isBestSeller: false,
-    },
-    {
-      name: "Traditional Gold Jallabiya",
-      price: 55000,
-      imageId: 9,
-      category: "jallabiya",
-      color: "Gold",
-      size: "L",
-      isBestSeller: true,
-    },
-    {
-      name: "Modern Maroon Jallabiya",
-      price: 48000,
-      imageId: 10,
-      category: "jallabiya",
-      color: "Maroon",
-      size: "M",
-      isBestSeller: false,
-    },
-    {
-      name: "Festive Emerald Jallabiya",
-      price: 52000,
-      imageId: 11,
-      category: "jallabiya",
-      color: "Emerald",
-      size: "XL",
-      isBestSeller: true,
-    },
-    {
-      name: "Royal Purple Jallabiya",
-      price: 60000,
-      imageId: 12,
-      category: "jallabiya",
-      color: "Purple",
-      size: "L",
-      isBestSeller: false,
-    },
-  ];
+// Sample products
+const sampleProducts = [
+  {
+    name: "Luxury Black Abaya",
+    price: 35000,
+    imageFile: "abaya1.jpg",
+    category: "abaya",
+    color: "Black",
+    size: "M",
+    isBestSeller: true,
+  },
+  {
+    name: "Elegant Navy Abaya",
+    price: 38000,
+    imageFile: "abaya2.jpg",
+    category: "abaya",
+    color: "Navy Blue",
+    size: "L",
+    isBestSeller: true,
+  },
+  // ... add the rest of your products similarly
+];
 
 async function seed() {
   console.log("Seeding database...");
 
-  // Delete all existing users first
+  // Clear previous data
   await db.delete(users);
-  console.log("Deleted all existing users");
+  await db.delete(products);
+  await db.delete(images);
+  console.log("Cleared users, products, and images");
 
-  // Always seed admin user
+  // Create admin user
   const adminId = crypto.randomUUID();
   const hashedPassword = await bcrypt.hash("password123", 10);
   await db.insert(users).values({
@@ -132,24 +51,44 @@ async function seed() {
     username: "fahdbadamasi320@gmail.com".toLowerCase().trim(),
     password: hashedPassword,
   });
-  console.log("Admin user created with email: fahdbadamasi320@gmail.com");
+  console.log("Admin user created");
 
-  // Clear existing data to ensure clean reseed
-  await db.delete(products);
-  await db.delete(images);
-  console.log("Cleared existing products and images");
+  // Insert images and products
+  for (const prod of sampleProducts) {
+    // Read image file from local folder
+    const imagePath = path.join(__dirname, "seed-images", prod.imageFile);
+    if (!fs.existsSync(imagePath)) {
+      console.warn(`Image file not found: ${prod.imageFile}, skipping`);
+      continue;
+    }
+    const data = fs.readFileSync(imagePath);
 
-  // No images created for best sellers - they will show as broken/missing images
+    // Insert image
+    const [newImage] = await db.insert(images).values({
+      filename: prod.imageFile,
+      data,
+      mimetype: "image/jpeg",
+    }).returning({ id: images.id });
 
-  await db.insert(products).values(sampleProducts);
-  console.log(`${sampleProducts.length} products seeded`);
+    // Insert product with imageId
+    await db.insert(products).values({
+      name: prod.name,
+      price: prod.price,
+      category: prod.category,
+      color: prod.color,
+      size: prod.size,
+      isBestSeller: prod.isBestSeller,
+      imageId: newImage.id,
+    });
+  }
 
+  console.log("Products and images seeded");
   console.log("Seeding complete!");
 }
 
 seed()
   .then(() => process.exit(0))
-  .catch((error) => {
-    console.error("Seeding error:", error);
+  .catch((err) => {
+    console.error("Seeding error:", err);
     process.exit(1);
   });

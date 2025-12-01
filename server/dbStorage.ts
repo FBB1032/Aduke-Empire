@@ -5,6 +5,7 @@ import type { User, InsertUser, Product, InsertProduct, UpdateProduct } from "@s
 import type { IStorage } from "./storage";
 
 export class DatabaseStorage implements IStorage {
+  // ---------------- USERS ----------------
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -21,54 +22,28 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  // ---------------- PRODUCTS ----------------
   async getProducts(
     category?: string,
     page: number = 1,
     limit: number = 12,
-    filters?: {
-      search?: string;
-      minPrice?: number;
-      maxPrice?: number;
-      color?: string;
-      size?: string;
-    }
+    filters?: { search?: string; minPrice?: number; maxPrice?: number; color?: string; size?: string }
   ): Promise<{ products: Product[]; total: number }> {
     const conditions = [];
-    
-    if (category) {
-      conditions.push(eq(products.category, category));
-    }
-    
-    if (filters?.search) {
-      conditions.push(ilike(products.name, `%${filters.search}%`));
-    }
-    
-    if (filters?.minPrice !== undefined) {
-      conditions.push(gte(products.price, filters.minPrice));
-    }
-    
-    if (filters?.maxPrice !== undefined) {
-      conditions.push(lte(products.price, filters.maxPrice));
-    }
-    
-    if (filters?.color) {
-      conditions.push(eq(products.color, filters.color));
-    }
-    
-    if (filters?.size) {
-      conditions.push(eq(products.size, filters.size));
-    }
+
+    if (category) conditions.push(eq(products.category, category));
+    if (filters?.search) conditions.push(ilike(products.name, `%${filters.search}%`));
+    if (filters?.minPrice !== undefined) conditions.push(gte(products.price, filters.minPrice));
+    if (filters?.maxPrice !== undefined) conditions.push(lte(products.price, filters.maxPrice));
+    if (filters?.color) conditions.push(eq(products.color, filters.color));
+    if (filters?.size) conditions.push(eq(products.size, filters.size));
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    const [countResult] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(products)
-      .where(whereClause);
-    
+    const [countResult] = await db.select({ count: sql<number>`count(*)::int` }).from(products).where(whereClause);
     const total = countResult?.count || 0;
-    const offset = (page - 1) * limit;
 
+    const offset = (page - 1) * limit;
     const productList = await db
       .select()
       .from(products)
@@ -86,36 +61,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBestSellers(limit: number = 8): Promise<Product[]> {
-    return db
-      .select()
-      .from(products)
-      .where(eq(products.isBestSeller, true))
-      .limit(limit);
+    return db.select().from(products).where(eq(products.isBestSeller, true)).limit(limit);
   }
 
-  async createProduct(product: any): Promise<Product> {
-    // Create image first
+  async createProduct(product: InsertProduct): Promise<Product> {
+    // First, create the image
     const image = await this.createImage({
-      filename: product.image.originalname || "product-image",
-      data: product.image.buffer,
-      mimetype: product.image.mimetype || "image/jpeg",
+      filename: "product-image",
+      data: product.image,
+      mimetype: "image/jpeg",
     });
 
-    // Create product with image ID
     const { image: _, ...productData } = product;
-    const [newProduct] = await db.insert(products).values({
-      ...productData,
-      imageId: image.id,
-    }).returning();
+
+    const [newProduct] = await db.insert(products).values({ ...productData, imageId: image.id }).returning();
     return newProduct;
   }
 
   async updateProduct(id: number, updates: UpdateProduct): Promise<Product | undefined> {
-    const [updated] = await db
-      .update(products)
-      .set(updates)
-      .where(eq(products.id, id))
-      .returning();
+    const [updated] = await db.update(products).set(updates).where(eq(products.id, id)).returning();
     return updated;
   }
 
@@ -129,22 +93,12 @@ export class DatabaseStorage implements IStorage {
     productsByCategory: { category: string; count: number }[];
     bestSellersCount: number;
   }> {
-    const [totalResult] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(products);
-    
+    const [totalResult] = await db.select({ count: sql<number>`count(*)::int` }).from(products);
     const categoryStats = await db
-      .select({
-        category: products.category,
-        count: sql<number>`count(*)::int`,
-      })
+      .select({ category: products.category, count: sql<number>`count(*)::int` })
       .from(products)
       .groupBy(products.category);
-    
-    const [bestSellersResult] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(products)
-      .where(eq(products.isBestSeller, true));
+    const [bestSellersResult] = await db.select({ count: sql<number>`count(*)::int` }).from(products).where(eq(products.isBestSeller, true));
 
     return {
       totalProducts: totalResult?.count || 0,
@@ -154,21 +108,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUniqueColors(): Promise<string[]> {
-    const result = await db
-      .selectDistinct({ color: products.color })
-      .from(products)
-      .where(sql`${products.color} IS NOT NULL`);
+    const result = await db.selectDistinct({ color: products.color }).from(products).where(sql`${products.color} IS NOT NULL`);
     return result.map(r => r.color).filter((c): c is string => c !== null);
   }
 
   async getUniqueSizes(): Promise<string[]> {
-    const result = await db
-      .selectDistinct({ size: products.size })
-      .from(products)
-      .where(sql`${products.size} IS NOT NULL`);
+    const result = await db.selectDistinct({ size: products.size }).from(products).where(sql`${products.size} IS NOT NULL`);
     return result.map(r => r.size).filter((s): s is string => s !== null);
   }
 
+  // ---------------- IMAGES ----------------
   async createImage(image: { filename: string; data: Buffer; mimetype: string }): Promise<{ id: number }> {
     const [newImage] = await db.insert(images).values(image).returning({ id: images.id });
     return newImage;
@@ -178,8 +127,6 @@ export class DatabaseStorage implements IStorage {
     const [image] = await db.select().from(images).where(eq(images.id, id));
     return image;
   }
-
-
 }
 
 export const dbStorage = new DatabaseStorage();
