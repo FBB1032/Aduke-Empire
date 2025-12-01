@@ -13,61 +13,74 @@ const app = express();
 const PORT = 5002;
 const __dirname = path.resolve();
 
-// Middleware
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? ['https://aduke-empire-production.up.railway.app/']
-    : 'http://localhost:5173',
-  credentials: true
-}));
+// --------------------
+// 🛠 FIXED CORS
+// --------------------
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? "https://aduke-empire-production.up.railway.app" // <-- NO TRAILING SLASH
+        : "http://localhost:5173",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session middleware
+// --------------------
+// 🛠 FIXED SESSION COOKIE (sameSite: "none")
+// --------------------
 let sessionStore;
 try {
   const PgSession = connectPgSimple(session);
   sessionStore = new PgSession({
     conString: process.env.DATABASE_URL,
-    tableName: 'session',
+    tableName: "session",
     createTableIfMissing: true,
   });
 } catch (error) {
-  console.log('Database not available, using memory store for sessions');
-  const MemoryStore = require('memorystore')(session);
+  console.log("Database not available, using memory store for sessions");
+  const MemoryStore = require("memorystore")(session);
   sessionStore = new MemoryStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
+    checkPeriod: 86400000,
   });
 }
 
-app.use(session({
-  store: sessionStore,
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
+app.use(
+  session({
+    store: sessionStore,
+    secret: process.env.SESSION_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production", // HTTPS required
+      httpOnly: true,
+      sameSite: "none", // <-- REQUIRED FOR CROSS-DOMAIN COOKIES
+      maxAge: 24 * 60 * 60 * 1000,
+    },
+  })
+);
 
-// Create HTTP server
+// --------------------
+// Server Initialization
+// --------------------
 const httpServer = createServer(app);
 
-// Register API routes
+// API routes
 registerRoutes(httpServer, app);
 
-// Serve static files from dist
+// Static files (React)
 app.use(express.static(path.join(process.cwd(), "dist")));
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-// Catch-all route for React + Wouter routing
+// SPA fallback for React Router / Wouter
 app.get("*", (req, res) => {
   res.sendFile(path.join(process.cwd(), "dist", "index.html"));
 });
 
-// Example API route
+// Example DB test route
 app.get("/api/test", async (req, res) => {
   try {
     const result = await db.execute(sql`SELECT 1`);
@@ -78,7 +91,9 @@ app.get("/api/test", async (req, res) => {
 });
 
 async function startServer() {
-  httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  httpServer.listen(PORT, () =>
+    console.log(`Server running on port ${PORT}`)
+  );
 }
 
 startServer();

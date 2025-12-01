@@ -64,7 +64,9 @@ export default function AdminPanel() {
   const products = productsData?.products || [];
 
   useEffect(() => {
-    if (!checkingAuth && !authData?.authenticated) setLocation("/admin-login");
+    if (!checkingAuth && authData !== undefined && !authData.authenticated) {
+      setLocation("/admin-login");
+    }
   }, [authData, checkingAuth, setLocation]);
 
   const form = useForm<ProductForm>({
