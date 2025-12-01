@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
+  username: z.string().min(1, "Email is required").email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -90,16 +90,16 @@ export default function AdminLogin() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
-                          type="text"
-                          placeholder="admin"
+                          type="email"
+                          placeholder="admin@adukesempire.com"
                           className="pl-10"
-                          autoComplete="username"
-                          data-testid="input-username"
+                          autoComplete="email"
+                          data-testid="input-email"
                           {...field}
                         />
                       </div>

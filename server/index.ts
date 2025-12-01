@@ -58,7 +58,7 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === "production", // HTTPS required
       httpOnly: true,
-      sameSite: "none", // <-- REQUIRED FOR CROSS-DOMAIN COOKIES
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use 'lax' for localhost development
       maxAge: 24 * 60 * 60 * 1000,
     },
   })

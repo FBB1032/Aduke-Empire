@@ -118,15 +118,18 @@ import { sql, eq } from "drizzle-orm";
 async function seed() {
   console.log("Seeding database...");
 
+  // Delete all existing users first
+  await db.delete(users);
+  console.log("Deleted all existing users");
+
   // Always seed admin user
-  await db.delete(users).where(eq(users.username, "admin"));
   const adminId = crypto.randomUUID();
   await db.insert(users).values({
     id: adminId,
-    username: "admin",
-    password: "password",
+    username: "admin@adukesempire.com",
+    password: "password123",
   });
-  console.log("Admin user created");
+  console.log("Admin user created with email: admin@adukesempire.com");
 
   // Clear existing data to ensure clean reseed
   await db.delete(products);
