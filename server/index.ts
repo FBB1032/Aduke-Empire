@@ -16,7 +16,7 @@ const __dirname = path.resolve();
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://aduke-empire-8vnh-n9tlxreiy-fahd-badamasis-projects.vercel.app']
+    ? ['https://aduke-empire-production.up.railway.app/']
     : 'http://localhost:5173',
   credentials: true
 }));
@@ -24,13 +24,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Session middleware
-const PgSession = connectPgSimple(session);
-app.use(session({
-  store: new PgSession({
+let sessionStore;
+try {
+  const PgSession = connectPgSimple(session);
+  sessionStore = new PgSession({
     conString: process.env.DATABASE_URL,
     tableName: 'session',
     createTableIfMissing: true,
-  }),
+  });
+} catch (error) {
+  console.log('Database not available, using memory store for sessions');
+  const MemoryStore = require('memorystore')(session);
+  sessionStore = new MemoryStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  });
+}
+
+app.use(session({
+  store: sessionStore,
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,

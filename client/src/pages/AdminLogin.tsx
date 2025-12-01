@@ -36,8 +36,9 @@ export default function AdminLogin() {
     setIsLoading(true);
     try {
       await apiRequest("POST", "/api/auth/login", data);
-      // Invalidate the auth check query to ensure AdminPanel refetches authentication status
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/check"] });
+      // Invalidate and refetch the auth check query to ensure AdminPanel gets updated authentication status
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/check"] });
+      const authCheck = await queryClient.refetchQueries({ queryKey: ["/api/auth/check"] });
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
