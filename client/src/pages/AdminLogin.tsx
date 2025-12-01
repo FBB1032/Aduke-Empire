@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Email is required").email("Invalid email address"),
+  username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -38,12 +38,24 @@ export default function AdminLogin() {
       await apiRequest("POST", "/api/auth/login", data);
       // Invalidate and refetch the auth check query to ensure AdminPanel gets updated authentication status
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/check"] });
-      const authCheck = await queryClient.refetchQueries({ queryKey: ["/api/auth/check"] });
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully logged in.",
-      });
-      setLocation("/admin");
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/check"] });
+      // Wait a bit for the query to settle and then check authentication
+      setTimeout(async () => {
+        const authData = queryClient.getQueryData<{ authenticated: boolean }>(["/api/auth/check"]);
+        if (authData?.authenticated) {
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully logged in.",
+          });
+          setLocation("/admin");
+        } else {
+          toast({
+            title: "Login failed",
+            description: "Authentication failed. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }, 100);
     } catch (error) {
       toast({
         title: "Login failed",
@@ -78,16 +90,16 @@ export default function AdminLogin() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Username</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
-                          type="email"
-                          placeholder="admin@adukesempire.com"
+                          type="text"
+                          placeholder="admin"
                           className="pl-10"
-                          autoComplete="email"
-                          data-testid="input-email"
+                          autoComplete="username"
+                          data-testid="input-username"
                           {...field}
                         />
                       </div>

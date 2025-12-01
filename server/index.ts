@@ -10,6 +10,7 @@ import { registerRoutes } from "./routes.js";
 import "dotenv/config";
 
 const app = express();
+app.set("trust proxy", 1); // REQUIRED for secure cookies behind Railway proxy
 const PORT = 5002;
 const __dirname = path.resolve();
 
