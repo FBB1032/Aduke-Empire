@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Email is required").email("Invalid email address"),
@@ -36,6 +36,8 @@ export default function AdminLogin() {
     setIsLoading(true);
     try {
       await apiRequest("POST", "/api/auth/login", data);
+      // Invalidate the auth check query to ensure AdminPanel refetches authentication status
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/check"] });
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
