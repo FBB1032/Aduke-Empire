@@ -2,6 +2,7 @@ import { db } from "./db";
 import { users, products, images } from "@shared/schema";
 import { sql, eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
+import "dotenv/config";
 
 
 
@@ -128,10 +129,10 @@ async function seed() {
   const hashedPassword = await bcrypt.hash("password123", 10);
   await db.insert(users).values({
     id: adminId,
-    username: "admin@adukesempire.com",
+    username: "fahdbadamasi320@gmail.com",
     password: hashedPassword,
   });
-  console.log("Admin user created with email: admin@adukesempire.com");
+  console.log("Admin user created with email: fahdbadamasi320@gmail.com");
 
   // Clear existing data to ensure clean reseed
   await db.delete(products);
