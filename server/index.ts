@@ -19,10 +19,8 @@ const __dirname = path.resolve();
 // --------------------
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? "https://aduke-empire-production.up.railway.app" // <-- NO TRAILING SLASH
-        : "http://localhost:5173",
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );

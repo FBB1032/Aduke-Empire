@@ -129,7 +129,7 @@ async function seed() {
   const hashedPassword = await bcrypt.hash("password123", 10);
   await db.insert(users).values({
     id: adminId,
-    username: "fahdbadamasi320@gmail.com",
+    username: "fahdbadamasi320@gmail.com".toLowerCase().trim(),
     password: hashedPassword,
   });
   console.log("Admin user created with email: fahdbadamasi320@gmail.com");

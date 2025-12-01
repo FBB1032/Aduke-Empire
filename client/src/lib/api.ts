@@ -1,3 +1,1 @@
-export const API_BASE = import.meta.env.PROD
-  ? "https://aduke-empire-production.up.railway.app"
-  : "http://localhost:5002";
+export const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5002";
