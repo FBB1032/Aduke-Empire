@@ -78,7 +78,7 @@ app.use(express.static(path.join(process.cwd(), "dist")));
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // SPA fallback for React Router / Wouter
-app.get("*", (req, res) => {
+app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.join(process.cwd(), "dist", "index.html"));
 });
 
