@@ -111,11 +111,11 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="w-4 h-4 flex-shrink-0" />
-                <span data-testid="text-email">hello@adukesempire.com</span>
+                <span data-testid="text-email">Suleimanwasila873@gmail.com</span>
               </li>
               <li className="flex items-start gap-3 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <span data-testid="text-address">Lagos, Nigeria</span>
+                <span data-testid="text-address">NASSARAWA, Nigeria</span>
               </li>
             </ul>
           </div>
