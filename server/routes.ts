@@ -5,6 +5,7 @@ import { insertProductSchema, updateProductSchema } from "@shared/schema";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import bcrypt from "bcrypt";
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage();
