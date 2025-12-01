@@ -40,8 +40,8 @@ export async function registerRoutes(
       }
       
       const user = await dbStorage.getUserByUsername(username);
-      
-      if (!user || user.password !== password) {
+
+      if (!user || !(await bcrypt.compare(password, user.password))) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
       

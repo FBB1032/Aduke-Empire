@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { users, products, images } from "@shared/schema";
 import { sql, eq } from "drizzle-orm";
+import bcrypt from "bcrypt";
 
 
 
@@ -124,10 +125,11 @@ async function seed() {
 
   // Always seed admin user
   const adminId = crypto.randomUUID();
+  const hashedPassword = await bcrypt.hash("password123", 10);
   await db.insert(users).values({
     id: adminId,
     username: "admin@adukesempire.com",
-    password: "password123",
+    password: hashedPassword,
   });
   console.log("Admin user created with email: admin@adukesempire.com");
 
