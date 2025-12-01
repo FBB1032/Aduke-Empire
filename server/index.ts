@@ -58,7 +58,8 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === "production", // HTTPS required
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use 'lax' for localhost development
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Changed from "none" to "strict" for Railway
+      domain: process.env.NODE_ENV === "production" ? ".railway.app" : undefined, // Set domain for Railway
       maxAge: 24 * 60 * 60 * 1000,
     },
   })
