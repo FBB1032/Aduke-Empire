@@ -4,6 +4,6 @@
     "buildCommand": "npm run build"
   },
   "deploy": {
-    "startCommand": "npm run dev"
+    "startCommand": "npm run start"
   }
 }
