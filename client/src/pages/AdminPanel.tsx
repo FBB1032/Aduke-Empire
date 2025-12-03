@@ -3,8 +3,6 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Package, LogOut, Trash2, Edit, X, Star } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useDropzone } from "react-dropzone";
 
 import { Button } from "@/components/ui/button";
@@ -20,29 +18,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
-import type { Product } from "@shared/schema";
+import type { Product } from "@shared/types";
 
-const addProductSchema = z.object({
-  name: z.string().min(1, "Product name is required"),
-  price: z.coerce.number().min(1, "Price must be greater than 0"),
-  image: z.instanceof(File).refine((file) => file.size > 0, "Image is required"),
-  category: z.enum(["abaya", "scarf", "jallabiya"], { required_error: "Select a category" }),
-  color: z.string().optional(),
-  size: z.string().optional(),
-  isBestSeller: z.boolean().default(false),
-});
-
-const editProductSchema = z.object({
-  name: z.string().min(1, "Product name is required"),
-  price: z.coerce.number().min(1, "Price must be greater than 0"),
-  image: z.instanceof(File).optional(), // Optional for editing
-  category: z.enum(["abaya", "scarf", "jallabiya"], { required_error: "Select a category" }),
-  color: z.string().optional(),
-  size: z.string().optional(),
-  isBestSeller: z.boolean().default(false),
-});
-
-type ProductForm = z.infer<typeof addProductSchema>;
+type ProductForm = {
+  name: string;
+  price: number;
+  image?: File;
+  category: "abaya" | "scarf" | "jallabiya";
+  color?: string;
+  size?: string;
+  isBestSeller: boolean;
+};
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
@@ -70,12 +56,11 @@ export default function AdminPanel() {
   }, [authData, checkingAuth, setLocation]);
 
   const form = useForm<ProductForm>({
-    resolver: zodResolver(addProductSchema),
     defaultValues: {
       name: "",
       price: 0,
       image: undefined,
-      category: undefined,
+      category: "abaya",
       color: "",
       size: "",
       isBestSeller: false,
@@ -126,6 +111,20 @@ export default function AdminPanel() {
   };
 
   const onSubmit = async (data: ProductForm) => {
+    // Manual validation
+    if (!data.name.trim()) {
+      form.setError("name", { message: "Product name is required" });
+      return;
+    }
+    if (data.price <= 0) {
+      form.setError("price", { message: "Price must be greater than 0" });
+      return;
+    }
+    if (!editingProduct && !data.image) {
+      form.setError("image", { message: "Image is required" });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -182,70 +181,86 @@ export default function AdminPanel() {
 
   if (checkingAuth)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[--color-bg]">
+        <div className="w-8 h-8 border-4 border-[--color-gold] border-t-transparent rounded-full animate-spin" />
       </div>
     );
 
   return (
-    <div className="min-h-screen py-8" data-testid="page-admin-panel">
+    <div className="min-h-screen py-12 bg-[--color-bg]" data-testid="page-admin-panel">
       <div className="max-w-6xl mx-auto px-4 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-12">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-medium text-foreground">Admin Panel</h1>
-            <p className="text-muted-foreground mt-1">Manage your product catalog</p>
+            <h1 className="h2-script gold-text drop-shadow-sm">Admin Panel</h1>
+            <p className="subtitle mt-3 text-lg">Manage your product catalog with ease</p>
           </div>
-          <Button variant="outline" onClick={handleLogout} data-testid="button-logout">
+          <Button 
+            variant="outline" 
+            onClick={handleLogout} 
+            data-testid="button-logout"
+            className="rounded-full px-8 h-12 text-base transition-all duration-300 border-[rgba(212,175,55,0.35)] hover:bg-[rgba(212,175,55,0.08)] hover:text-[--color-gold]"
+          >
             <LogOut className="w-4 h-4 mr-2" /> Logout
           </Button>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="add" data-testid="tab-add-product">
-              <Plus className="w-4 h-4 mr-2" /> {editingProduct ? "Edit Product" : "Add Product"}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
+          <TabsList className="grid w-full max-w-md grid-cols-2 bg-black/30 p-1.5 rounded-full h-14 border border-[rgba(212,175,55,0.25)]">
+            <TabsTrigger 
+              value="add" 
+              data-testid="tab-add-product"
+              className="rounded-full h-11 data-[state=active]:bg-black/50 data-[state=active]:text-[--color-gold] data-[state=active]:shadow-md transition-all duration-300 text-base font-medium"
+            >
+              <Plus className="w-4 h-4 mr-2" /> Add Product
             </TabsTrigger>
-            <TabsTrigger value="manage" data-testid="tab-manage-products">
+            <TabsTrigger 
+              value="manage" 
+              data-testid="tab-manage-products"
+              className="rounded-full h-11 data-[state=active]:bg-black/50 data-[state=active]:text-[--color-gold] data-[state=active]:shadow-md transition-all duration-300 text-base font-medium"
+            >
               <Package className="w-4 h-4 mr-2" /> Manage Products
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="add">
-            <Card className="max-w-2xl border-card-border">
-              <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
-                <CardTitle>{editingProduct ? "Edit Product" : "Add New Product"}</CardTitle>
+            <Card className="card-lux max-w-2xl">
+              <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-8 pt-8 px-8 border-b border-[rgba(212,175,55,0.35)]">
+                <CardTitle className="h2-script">{editingProduct ? "Edit Product" : "Add New Product"}</CardTitle>
                 {editingProduct && (
-                  <Button variant="ghost" size="icon" onClick={resetForm} data-testid="button-cancel-edit">
-                    <X className="w-4 h-4" />
+                  <Button variant="ghost" size="icon" onClick={resetForm} data-testid="button-cancel-edit" className="rounded-full w-10 h-10 hover:bg-destructive/10 hover:text-destructive">
+                    <X className="w-5 h-5" />
                   </Button>
                 )}
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-8 lg:p-10">
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit as any)}
+                    className="space-y-8"
+                  >
                     <FormField
                       control={form.control}
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Product Name</FormLabel>
+                          <FormLabel className="text-foreground/80 text-base ml-1">Product Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Luxury Black Abaya" {...field} />
+                            <Input placeholder="Luxury Black Abaya" {...field} className="rounded-2xl border-input/60 focus:border-primary h-14 text-base px-4 bg-white/50" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-8">
                       <FormField
                         control={form.control}
                         name="price"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Price (NGN)</FormLabel>
+                            <FormLabel className="text-foreground/80 text-base ml-1">Price (NGN)</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="35000" {...field} />
+                              <Input type="number" placeholder="35000" {...field} className="rounded-2xl border-input/60 focus:border-primary h-14 text-base px-4 bg-white/50" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -257,17 +272,17 @@ export default function AdminPanel() {
                         name="category"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Category</FormLabel>
+                            <FormLabel className="text-foreground/80 text-base ml-1">Category</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
-                                <SelectTrigger>
+                                <SelectTrigger className="rounded-2xl border-input/60 focus:border-primary h-14 text-base px-4 bg-white/50">
                                   <SelectValue placeholder="Select category" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent>
-                                <SelectItem value="abaya">Abaya</SelectItem>
-                                <SelectItem value="scarf">Scarf</SelectItem>
-                                <SelectItem value="jallabiya">Jallabiya</SelectItem>
+                              <SelectContent className="rounded-2xl border-primary/10">
+                                <SelectItem value="abaya" className="text-base py-3 cursor-pointer">Abaya</SelectItem>
+                                <SelectItem value="scarf" className="text-base py-3 cursor-pointer">Scarf</SelectItem>
+                                <SelectItem value="jallabiya" className="text-base py-3 cursor-pointer">Jallabiya</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -276,15 +291,15 @@ export default function AdminPanel() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-8">
                       <FormField
                         control={form.control}
                         name="size"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Size (Optional)</FormLabel>
+                            <FormLabel className="text-foreground/80 text-base ml-1">Size (Optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="M, L, XL, One Size" {...field} />
+                              <Input placeholder="M, L, XL, One Size" {...field} className="rounded-2xl border-input/60 focus:border-primary h-14 text-base px-4 bg-white/50" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -295,12 +310,9 @@ export default function AdminPanel() {
                         control={form.control}
                         name="isBestSeller"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <FormItem className="flex flex-row items-center justify-between rounded-2xl border border-input/60 p-4 bg-secondary/5 h-14 mt-8">
                             <div className="space-y-0.5">
-                              <FormLabel className="text-base">Best Seller</FormLabel>
-                              <div className="text-sm text-muted-foreground">
-                                Mark as best seller product
-                              </div>
+                              <FormLabel className="text-base font-medium">Best Seller</FormLabel>
                             </div>
                             <FormControl>
                               <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -315,17 +327,32 @@ export default function AdminPanel() {
                       name="image"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Product Image</FormLabel>
+                          <FormLabel className="text-foreground/80 text-base ml-1">Product Image</FormLabel>
                           <FormControl>
                             <div
                               {...getRootProps()}
-                              className="border border-dashed border-border rounded-lg p-4 cursor-pointer flex items-center justify-center"
+                              className="border-2 border-dashed border-primary/20 hover:border-primary/50 rounded-3xl p-10 cursor-pointer flex flex-col items-center justify-center transition-all duration-300 bg-secondary/5 hover:bg-secondary/10 group"
                             >
                               <input {...getInputProps()} />
                               {imagePreview ? (
-                                <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                                <div className="relative group w-full flex justify-center">
+                                  <img src={imagePreview} alt="Preview" className="w-64 h-64 object-cover rounded-2xl shadow-lg group-hover:scale-105 transition-transform duration-500" />
+                                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <div className="bg-black/60 text-white px-6 py-3 rounded-full backdrop-blur-sm font-medium">
+                                      Change Image
+                                    </div>
+                                  </div>
+                                </div>
                               ) : (
-                                <p className="text-muted-foreground">Drag & drop an image or click to upload</p>
+                                <div className="text-center space-y-4 group-hover:scale-105 transition-transform duration-300">
+                                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary shadow-sm">
+                                    <Plus className="w-8 h-8" />
+                                  </div>
+                                  <div>
+                                    <p className="text-foreground font-medium text-lg">Click to upload or drag & drop</p>
+                                    <p className="text-sm text-muted-foreground mt-1">SVG, PNG, JPG or GIF (max. 800x400px)</p>
+                                  </div>
+                                </div>
                               )}
                             </div>
                           </FormControl>
@@ -334,7 +361,12 @@ export default function AdminPanel() {
                       )}
                     />
 
-                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    <Button 
+                      type="submit" 
+                      className="btn-gold w-full h-14 text-lg rounded-full mt-2 font-medium tracking-wide" 
+                      disabled={isSubmitting}
+                    >
+                      <span className="shine" />
                       {editingProduct ? "Update Product" : "Add Product"}
                     </Button>
                   </form>
@@ -344,33 +376,70 @@ export default function AdminPanel() {
           </TabsContent>
 
           <TabsContent value="manage">
-            <Card className="border-card-border">
-              <CardHeader>
-                <CardTitle>All Products</CardTitle>
+            <Card className="card-lux">
+              <CardHeader className="pb-8 pt-8 px-8 border-b border-[rgba(212,175,55,0.35)]">
+                <CardTitle className="h2-script">All Products</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-8">
                 {loadingProducts ? (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-16 w-full" />
+                      <Skeleton key={i} className="h-28 w-full rounded-3xl" />
                     ))}
                   </div>
                 ) : products.length === 0 ? (
-                  <p className="text-center py-12 text-muted-foreground">No products yet.</p>
+                  <div className="text-center py-24 space-y-6">
+                    <div className="w-20 h-20 rounded-full bg-secondary/20 flex items-center justify-center mx-auto">
+                      <Package className="w-10 h-10 text-primary/60" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-foreground text-xl font-medium">No products found</p>
+                      <p className="text-muted-foreground">Start building your collection by adding a product.</p>
+                    </div>
+                    <Button variant="ghost" onClick={() => setActiveTab("add")} className="text-primary hover:text-primary/80 hover:bg-primary/5 rounded-full px-6">
+                      Add your first product
+                    </Button>
+                  </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {products.map((product) => (
-                      <div key={product.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                        <div className="w-16 h-16 overflow-hidden rounded-lg">
-                          <img src={`/api/images/${product.imageId}`} alt={product.name} className="w-full h-full object-cover" />
+                      <div key={product.id} className="flex items-center gap-6 p-4 border border-border/50 rounded-3xl hover:bg-secondary/5 transition-all duration-300 group hover:shadow-sm hover:border-primary/20 bg-white/50">
+                        <div className="w-24 h-24 overflow-hidden rounded-2xl shadow-sm">
+                          <img src={`/api/images/${product.imageId}`} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                         </div>
-                        <div className="flex-1">
-                          <h3>{product.name}</h3>
-                          <p>{formatPrice(product.price)} • {product.category}</p>
+                        <div className="flex-1 min-w-0 py-2">
+                          <h3 className="font-brand text-2xl text-foreground truncate mb-1">{product.name}</h3>
+                          <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                            <span className="font-semibold text-primary text-base">{formatPrice(product.price)}</span>
+                            <span className="text-primary/20">•</span>
+                            <span className="capitalize px-3 py-1 rounded-full bg-secondary/20 text-xs font-medium tracking-wide">{product.category}</span>
+                            {product.isBestSeller && (
+                              <>
+                                <span className="text-primary/20">•</span>
+                                <span className="flex items-center text-amber-600 text-xs font-medium bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
+                                  <Star className="w-3 h-3 mr-1.5 fill-amber-400 text-amber-400" /> Best Seller
+                                </span>
+                              </>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button onClick={() => setEditingProduct(product)}><Edit /></Button>
-                          <Button onClick={() => setDeleteProduct(product)}><Trash2 /></Button>
+                        <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 px-4">
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => setEditingProduct(product)}
+                            className="rounded-full w-10 h-10 hover:bg-primary hover:text-white border-primary/20 hover:border-primary transition-colors"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => setDeleteProduct(product)}
+                            className="rounded-full w-10 h-10 hover:bg-destructive hover:text-white border-destructive/20 text-destructive hover:border-destructive transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -383,16 +452,20 @@ export default function AdminPanel() {
       </div>
 
       <Dialog open={!!deleteProduct} onOpenChange={() => setDeleteProduct(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Product</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete "{deleteProduct?.name}"?
+        <DialogContent className="rounded-3xl border-[rgba(212,175,55,0.35)] bg-black/50 backdrop-blur-md shadow-2xl p-8 max-w-md">
+          <DialogHeader className="space-y-4">
+            <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-2">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <DialogTitle className="font-brand text-3xl text-foreground">Delete Product</DialogTitle>
+            <DialogDescription className="text-base pt-2 leading-relaxed">
+              Are you sure you want to delete <span className="font-medium text-foreground">"{deleteProduct?.name}"</span>? 
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setDeleteProduct(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+          <DialogFooter className="gap-3 mt-8 sm:justify-between">
+            <Button variant="outline" onClick={() => setDeleteProduct(null)} className="rounded-full px-8 h-12 border-input/60 hover:bg-secondary/10 flex-1">Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} className="rounded-full px-8 h-12 shadow-lg hover:shadow-xl hover:bg-destructive/90 flex-1">Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

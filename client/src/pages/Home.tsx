@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { HeroSection } from "@/components/HeroSection";
 import { CategoryCard } from "@/components/CategoryCard";
 import { ProductGrid } from "@/components/ProductGrid";
+import { Button } from "@/components/ui/button";
 import type { Product } from "@shared/schema";
 
 export default function Home() {
@@ -43,20 +44,21 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen" data-testid="page-home">
+    <div className="min-h-screen bg-background" data-testid="page-home">
       <HeroSection />
 
-      <section className="py-12 lg:py-20" data-testid="section-categories">
+      <section className="py-16 lg:py-24" data-testid="section-categories">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="text-center mb-10 lg:mb-12">
-            <h2 className="text-2xl lg:text-3xl font-medium text-foreground mb-3">
+          <div className="text-center mb-12 lg:mb-16 space-y-4">
+            <h2 className="font-brand text-5xl lg:text-6xl text-primary drop-shadow-sm">
               Shop by Category
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
+            <p className="text-muted-foreground max-w-2xl mx-auto font-light text-lg lg:text-xl leading-relaxed">
               Explore our curated collections designed for elegance and comfort
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
             {categories.map((category) => (
               <CategoryCard key={category.title} {...category} />
             ))}
@@ -64,62 +66,86 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-12 lg:py-20 bg-card" data-testid="section-bestsellers">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="text-center mb-10 lg:mb-12">
-            <h2 className="text-2xl lg:text-3xl font-medium text-foreground mb-3">
+      <section className="py-16 lg:py-24 bg-secondary/20 relative overflow-hidden" data-testid="section-bestsellers">
+        {/* Decorative background element */}
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 relative z-10">
+          <div className="text-center mb-12 lg:mb-16 space-y-4">
+            <h2 className="font-brand text-5xl lg:text-6xl text-primary drop-shadow-sm">
               Best Sellers
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
+            <p className="text-muted-foreground max-w-2xl mx-auto font-light text-lg lg:text-xl leading-relaxed">
               Discover our most loved pieces chosen by customers just like you
             </p>
           </div>
           <ProductGrid 
             products={bestSellers || []} 
             isLoading={isLoading} 
-            loadingCount={5}
+            loadingCount={4}
           />
+          
+          <div className="mt-12 text-center">
+            <Button variant="outline" className="rounded-full px-8 py-6 border-primary/30 text-primary hover:bg-primary hover:text-white text-lg transition-all duration-300">
+              View All Products
+            </Button>
+          </div>
         </div>
+        
+        {/* Decorative background element */}
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
       </section>
 
-      <section className="py-12 lg:py-20" data-testid="section-about">
+      <section className="py-16 lg:py-24" data-testid="section-about">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-            <div className="space-y-6">
-              <h2 className="text-2xl lg:text-3xl font-medium text-foreground">
-                About Aduke's Empire
-              </h2>
-              <p className="text-muted-foreground leading-relaxed">
-                At Aduke's Empire, we believe modest fashion should never compromise on style. 
-                Our collections are thoughtfully designed to celebrate the beauty of modesty 
-                while embracing contemporary trends.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                Each piece in our collection is crafted with premium materials and attention 
-                to detail, ensuring you look and feel your absolute best. From everyday elegance 
-                to special occasions, we have something for every moment.
-              </p>
-              <div className="flex flex-wrap gap-8 pt-4">
-                <div className="text-center">
-                  <p className="text-3xl font-semibold text-foreground">500+</p>
-                  <p className="text-sm text-muted-foreground">Happy Customers</p>
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <div className="space-y-8 order-2 lg:order-1">
+              <div className="space-y-4">
+                <h2 className="font-brand text-5xl lg:text-6xl text-primary drop-shadow-sm">
+                  About Aduke's Empire
+                </h2>
+                <div className="w-24 h-1 bg-primary/20 rounded-full"></div>
+              </div>
+              
+              <div className="space-y-6 text-lg text-muted-foreground font-light leading-relaxed">
+                <p>
+                  At Aduke's Empire, we believe modest fashion should never compromise on style. 
+                  Our collections are thoughtfully designed to celebrate the beauty of modesty 
+                  while embracing contemporary trends.
+                </p>
+                <p>
+                  Each piece in our collection is crafted with premium materials and attention 
+                  to detail, ensuring you look and feel your absolute best. From everyday elegance 
+                  to special occasions, we have something for every moment.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-6 pt-4">
+                <div className="text-center p-6 bg-secondary/10 rounded-2xl border border-secondary/20">
+                  <p className="text-3xl lg:text-4xl font-bold text-primary mb-1">500+</p>
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider">Happy Customers</p>
                 </div>
-                <div className="text-center">
-                  <p className="text-3xl font-semibold text-foreground">100%</p>
-                  <p className="text-sm text-muted-foreground">Quality Assured</p>
+                <div className="text-center p-6 bg-secondary/10 rounded-2xl border border-secondary/20">
+                  <p className="text-3xl lg:text-4xl font-bold text-primary mb-1">100%</p>
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider">Quality Assured</p>
                 </div>
-                <div className="text-center">
-                  <p className="text-3xl font-semibold text-foreground">24/7</p>
-                  <p className="text-sm text-muted-foreground">WhatsApp Support</p>
+                <div className="text-center p-6 bg-secondary/10 rounded-2xl border border-secondary/20">
+                  <p className="text-3xl lg:text-4xl font-bold text-primary mb-1">24/7</p>
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider">Support</p>
                 </div>
               </div>
             </div>
-            <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
-              <img
-                src={abayaProducts?.products[0] ? `/api/images/${abayaProducts.products[0].imageId}` : "https://i.pinimg.com/1200x/74/bb/9b/74bb9bf82e9c78675d96b8c117b06247.jpg"}
-                alt="Elegant modest fashion"
-                className="w-full h-full object-cover"
-              />
+            
+            <div className="relative order-1 lg:order-2">
+              <div className="absolute inset-0 bg-primary/5 rounded-[2rem] rotate-6 transform scale-95 z-0"></div>
+              <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl z-10 border-4 border-white">
+                <img
+                  src={abayaProducts?.products[0] ? `/api/images/${abayaProducts.products[0].imageId}` : "https://i.pinimg.com/1200x/74/bb/9b/74bb9bf82e9c78675d96b8c117b06247.jpg"}
+                  alt="Elegant modest fashion"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                />
+              </div>
             </div>
           </div>
         </div>

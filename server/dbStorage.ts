@@ -12,7 +12,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const normalized = username.toLowerCase().trim();
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(sql`lower(${users.username}) = ${normalized}`);
     return user;
   }
 

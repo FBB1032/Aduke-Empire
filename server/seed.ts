@@ -45,13 +45,13 @@ async function seed() {
 
   // Create admin user
   const adminId = crypto.randomUUID();
-  const hashedPassword = await bcrypt.hash("password123", 10);
+  const hashedPassword = await bcrypt.hash("S!lkyRoseGold_2025#Boutique", 12);
   await db.insert(users).values({
     id: adminId,
-    username: "fahdbadamasi320@gmail.com".toLowerCase().trim(),
+    username: "Suleimanwasila873@gmail.com".toLowerCase().trim(),
     password: hashedPassword,
   });
-  console.log("Admin user created");
+  console.log("Admin user created with updated credentials");
 
   // Insert images and products
   for (const prod of sampleProducts) {

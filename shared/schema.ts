@@ -51,7 +51,7 @@ export const insertProductSchema = z.object({
   price: z.coerce.number().min(1, "Price must be greater than 0"),
   image: z.any().refine((val) => val && (val instanceof Buffer ? val.length > 0 : val.size > 0), "Image is required"),
   category: z.enum(["abaya", "scarf", "jallabiya"], {
-    required_error: "Please select a category",
+    message: "Please select a category",
   }),
   color: z.string().optional().default(""),
   size: z.string().optional().default(""),

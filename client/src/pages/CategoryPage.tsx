@@ -82,31 +82,32 @@ export default function CategoryPage({ category }: CategoryPageProps) {
   }, [loadMore, isFetching, hasMore]);
 
   return (
-    <div className="min-h-screen" data-testid={`page-${category}`}>
-      <section className="relative h-[40vh] lg:h-[50vh] flex items-center justify-center overflow-hidden">
+    <div className="min-h-screen bg-background" data-testid={`page-${category}`}>
+      <section className="relative h-[50vh] lg:h-[60vh] flex items-center justify-center overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 hover:scale-105"
           style={{ backgroundImage: `url('${categoryImages[category]}')` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
-        <div className="relative z-10 text-center px-4 space-y-4 max-w-3xl mx-auto">
+        <div className="absolute inset-0 bg-linear-to-b from-primary/30 via-black/40 to-black/80 mix-blend-multiply" />
+        <div className="relative z-10 text-center px-4 space-y-6 max-w-4xl mx-auto animate-in fade-in zoom-in duration-1000">
           <h1 
-            className="text-4xl lg:text-5xl xl:text-6xl font-medium text-white"
+            className="font-brand text-8xl lg:text-9xl xl:text-[10rem] text-white drop-shadow-xl leading-tight"
             data-testid="text-category-title"
           >
             {categoryLabels[category]}
           </h1>
-          <p className="text-white/80 text-base lg:text-lg max-w-2xl mx-auto">
+          <div className="w-32 h-1 bg-white/40 mx-auto rounded-full backdrop-blur-sm"></div>
+          <p className="text-white/95 text-xl lg:text-2xl max-w-2xl mx-auto font-light tracking-wide leading-relaxed drop-shadow-md">
             {categoryDescriptions[category]}
           </p>
         </div>
       </section>
 
-      <section className="py-12 lg:py-16">
+      <section className="py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <p className="text-muted-foreground" data-testid="text-product-count">
-              {data?.total || 0} products
+          <div className="flex items-center justify-center mb-12 border-b border-primary/10 pb-8">
+            <p className="text-muted-foreground font-light text-lg uppercase tracking-widest" data-testid="text-product-count">
+              Showing <span className="font-medium text-primary">{data?.total || 0}</span> products
             </p>
           </div>
 

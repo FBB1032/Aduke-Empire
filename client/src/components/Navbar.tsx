@@ -17,13 +17,13 @@ export function Navbar() {
 
   return (
     <header 
-      className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      className="navbar-lux w-full shadow-lg shadow-primary/5"
       data-testid="navbar"
     >
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
-        <div className="flex h-16 lg:h-20 items-center justify-between gap-4">
+        <div className="flex h-20 lg:h-24 items-center justify-between gap-4">
           <Link href="/" data-testid="link-home-logo">
-            <span className="font-brand text-2xl lg:text-3xl text-foreground cursor-pointer">
+            <span className="navbar-logo cursor-pointer drop-shadow-[0_0_10px_rgba(212,175,55,0.25)] hover:opacity-90 transition-opacity pt-2">
               Aduke's Empire
             </span>
           </Link>
@@ -33,9 +33,9 @@ export function Navbar() {
               <Link key={link.href} href={link.href}>
                 <Button
                   variant="ghost"
-                  className={`text-sm uppercase tracking-wide font-medium ${
+                  className={`text-sm uppercase tracking-widest font-medium transition-all duration-300 hover:text-primary hover:bg-primary/10 rounded-full px-6 h-10 ${
                     location === link.href
-                      ? "bg-accent text-accent-foreground"
+                      ? "text-primary bg-primary/10 font-semibold shadow-[0_0_15px_rgba(219,112,147,0.2)]"
                       : "text-muted-foreground"
                   }`}
                   data-testid={`link-nav-${link.testId}`}
@@ -48,7 +48,7 @@ export function Navbar() {
               <Button
                 variant="outline"
                 size="sm"
-                className="ml-2"
+                className="ml-4 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary-foreground hover:border-primary rounded-full px-6 h-10 transition-all duration-300"
                 data-testid="link-admin"
               >
                 <ShoppingBag className="w-4 h-4 mr-2" />
@@ -59,38 +59,40 @@ export function Navbar() {
 
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon" data-testid="button-mobile-menu">
-                <Menu className="h-5 w-5" />
+              <Button variant="ghost" size="icon" data-testid="button-mobile-menu" className="hover:bg-primary/5 hover:text-primary">
+                <Menu className="h-6 w-6" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] sm:w-[350px]">
-              <div className="flex flex-col gap-4 mt-8">
-                <span className="font-brand text-2xl text-foreground mb-4">
+            <SheetContent side="right" className="w-[280px] sm:w-[350px] border-l-primary/20 bg-background/95 backdrop-blur-xl">
+              <div className="flex flex-col gap-6 mt-8">
+                <span className="font-brand text-4xl text-primary mb-2 text-center drop-shadow-[0_0_8px_rgba(219,112,147,0.4)]">
                   Aduke's Empire
                 </span>
-                {navLinks.map((link) => (
-                  <SheetClose asChild key={link.href}>
-                    <Link href={link.href}>
-                      <Button
-                        variant="ghost"
-                        className={`w-full justify-start text-base uppercase tracking-wide ${
-                          location === link.href
-                            ? "bg-accent text-accent-foreground"
-                            : "text-muted-foreground"
-                        }`}
-                        data-testid={`link-mobile-${link.testId}`}
-                      >
-                        {link.label}
-                      </Button>
-                    </Link>
-                  </SheetClose>
-                ))}
+                <div className="space-y-2">
+                  {navLinks.map((link) => (
+                    <SheetClose asChild key={link.href}>
+                      <Link href={link.href}>
+                        <Button
+                          variant="ghost"
+                          className={`w-full justify-start text-base uppercase tracking-widest h-12 rounded-xl ${
+                            location === link.href
+                              ? "text-primary bg-primary/10 font-semibold"
+                              : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                          }`}
+                          data-testid={`link-mobile-${link.testId}`}
+                        >
+                          {link.label}
+                        </Button>
+                      </Link>
+                    </SheetClose>
+                  ))}
+                </div>
                 <SheetClose asChild>
                   <Link href="/admin-login">
                     <Button
                       variant="outline"
-                      className="w-full justify-start mt-4"
+                      className="w-full justify-start mt-4 h-12 rounded-xl border-primary/20 hover:bg-primary/5 hover:text-primary"
                       data-testid="link-mobile-admin"
                     >
                       <ShoppingBag className="w-4 h-4 mr-2" />

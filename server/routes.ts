@@ -32,18 +32,31 @@ export async function registerRoutes(app: Express) {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
+      console.log("Login attempt:", { username });
+
       if (!username || !password)
         return res.status(400).json({ error: "Username and password are required" });
 
       const normalizedUsername = username.toLowerCase().trim();
-      const user = await dbStorage.getUserByUsername(normalizedUsername);
+      console.log("Normalized username:", normalizedUsername);
 
-      if (!user || !(await bcrypt.compare(password, user.password))) {
+      const user = await dbStorage.getUserByUsername(normalizedUsername);
+      console.log("Found user:", !!user);
+
+      if (!user) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      const passwordMatches = await bcrypt.compare(password, user.password);
+      console.log("Password matches:", passwordMatches);
+
+      if (!passwordMatches) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
       req.session.userId = user.id;
       req.session.isAdmin = true;
+      console.log("Session after login:", req.session);
 
       res.json({ success: true, message: "Logged in successfully" });
     } catch (err) {
@@ -90,6 +103,18 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // ---------- GET BESTSELLERS ----------
+  app.get("/api/products/bestsellers", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 8;
+      const products = await dbStorage.getBestSellers(limit);
+      res.json(products);
+    } catch (err) {
+      console.error("Get bestsellers error:", err);
+      res.status(500).json({ error: "Failed to fetch bestsellers" });
+    }
+  });
+
   app.get("/api/products/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -122,7 +147,7 @@ export async function registerRoutes(app: Express) {
       });
 
       if (!parsed.success) {
-        return res.status(400).json({ error: parsed.error.errors });
+        return res.status(400).json({ error: parsed.error.issues });
       }
 
       const product = await dbStorage.createProduct(parsed.data);
@@ -165,7 +190,7 @@ export async function registerRoutes(app: Express) {
       });
 
       const parsed = updateProductSchema.safeParse(updateData);
-      if (!parsed.success) return res.status(400).json({ error: parsed.error.errors });
+      if (!parsed.success) return res.status(400).json({ error: parsed.error.issues });
 
       const updated = await dbStorage.updateProduct(id, parsed.data);
       if (!updated) return res.status(404).json({ error: "Product not found" });
@@ -190,18 +215,6 @@ export async function registerRoutes(app: Express) {
     } catch (err) {
       console.error("Delete product error:", err);
       res.status(500).json({ error: "Failed to delete product" });
-    }
-  });
-
-  // ---------- GET BESTSELLERS ----------
-  app.get("/api/products/bestsellers", async (req, res) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 8;
-      const products = await dbStorage.getBestSellers(limit);
-      res.json(products);
-    } catch (err) {
-      console.error("Get bestsellers error:", err);
-      res.status(500).json({ error: "Failed to fetch bestsellers" });
     }
   });
 

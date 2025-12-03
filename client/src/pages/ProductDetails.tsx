@@ -44,17 +44,17 @@ export default function ProductDetails() {
     return (
       <div className="min-h-screen py-8" data-testid="page-product-loading">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <Skeleton className="h-6 w-32 mb-8" />
+          <Skeleton className="h-6 w-32 mb-8 rounded-full" />
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-            <Skeleton className="aspect-[3/4] rounded-lg" />
+            <Skeleton className="aspect-3/4 rounded-4xl" />
             <div className="space-y-6">
-              <Skeleton className="h-10 w-3/4" />
-              <Skeleton className="h-8 w-1/3" />
+              <Skeleton className="h-10 w-3/4 rounded-xl" />
+              <Skeleton className="h-8 w-1/3 rounded-xl" />
               <div className="grid grid-cols-2 gap-4">
-                <Skeleton className="h-20" />
-                <Skeleton className="h-20" />
+                <Skeleton className="h-20 rounded-2xl" />
+                <Skeleton className="h-20 rounded-2xl" />
               </div>
-              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full rounded-full" />
             </div>
           </div>
         </div>
@@ -82,21 +82,21 @@ export default function ProductDetails() {
   }
 
   return (
-    <div className="min-h-screen py-8" data-testid="page-product-details">
+    <div className="min-h-screen py-12 lg:py-16 bg-background" data-testid="page-product-details">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         <Link href={`/${product.category}`}>
           <Button 
             variant="ghost" 
-            className="mb-6 -ml-2"
+            className="mb-8 -ml-2 hover:text-primary hover:bg-primary/5 rounded-full px-6 h-12 text-base"
             data-testid="button-back"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-5 h-5 mr-2" />
             Back to {categoryLabels[product.category as Category]}
           </Button>
         </Link>
 
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-          <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
+          <div className="relative aspect-4/5 rounded-4xl overflow-hidden bg-secondary/10 shadow-2xl border border-white/50">
             <img
               src={`/api/images/${product.imageId}`}
               alt={product.name}
@@ -105,40 +105,42 @@ export default function ProductDetails() {
             />
             {product.isBestSeller && (
               <Badge 
-                className="absolute top-4 right-4 bg-primary text-primary-foreground gap-1"
+                className="absolute top-8 right-8 bg-white/90 text-primary hover:bg-white gap-2 shadow-lg backdrop-blur-md px-5 py-2 text-sm uppercase tracking-wider font-semibold border border-primary/10 rounded-full"
                 data-testid="badge-bestseller"
               >
-                <Star className="w-3 h-3 fill-current" />
+                <Star className="w-4 h-4 fill-primary" />
                 Best Seller
               </Badge>
             )}
           </div>
 
-          <div className="lg:sticky lg:top-24 lg:self-start space-y-6">
-            <div className="space-y-3">
-              <p className="text-sm uppercase tracking-wide text-muted-foreground">
-                {categoryLabels[product.category as Category]}
-              </p>
-              <h1 
-                className="text-2xl lg:text-3xl font-medium text-foreground"
-                data-testid="text-product-name"
-              >
-                {product.name}
-              </h1>
+          <div className="lg:sticky lg:top-24 lg:self-start space-y-10">
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <p className="text-sm uppercase tracking-[0.25em] text-primary font-medium border-b border-primary/10 pb-4 inline-block">
+                  {categoryLabels[product.category as Category]}
+                </p>
+                <h1 
+                  className="font-brand text-6xl lg:text-7xl text-foreground leading-tight drop-shadow-sm"
+                  data-testid="text-product-name"
+                >
+                  {product.name}
+                </h1>
+              </div>
               <p 
-                className="text-3xl lg:text-4xl font-semibold text-foreground"
+                className="text-4xl lg:text-5xl font-medium text-primary font-brand"
                 data-testid="text-product-price"
               >
                 {formatPrice(product.price)}
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-6">
               {product.size && (
-                <div className="bg-card rounded-lg p-4 border border-card-border">
-                  <p className="text-sm text-muted-foreground mb-1">Size</p>
+                <div className="bg-secondary/20 rounded-3xl p-8 border border-secondary/30 text-center">
+                  <p className="text-xs text-muted-foreground mb-3 uppercase tracking-widest font-medium">Size</p>
                   <p
-                    className="font-medium text-foreground"
+                    className="font-medium text-foreground text-2xl"
                     data-testid="text-product-size"
                   >
                     {product.size}
@@ -147,7 +149,7 @@ export default function ProductDetails() {
               )}
             </div>
 
-            <div className="pt-4 space-y-3">
+            <div className="pt-8 space-y-6 border-t border-primary/10">
               <a
                 href={generateWhatsAppLink()}
                 target="_blank"
@@ -157,25 +159,37 @@ export default function ProductDetails() {
               >
                 <Button 
                   size="lg" 
-                  className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white text-base"
+                  className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white text-xl py-8 rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 font-medium tracking-wide"
                 >
-                  <SiWhatsapp className="w-5 h-5 mr-2" />
+                  <SiWhatsapp className="w-7 h-7 mr-3" />
                   Buy Now via WhatsApp
                 </Button>
               </a>
-              <p className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+              <p className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2 font-light">
                 <Phone className="w-4 h-4" />
-                We'll respond within minutes
+                We'll respond within minutes to confirm your order
               </p>
             </div>
 
-            <div className="border-t border-border pt-6 space-y-4">
-              <h3 className="font-medium text-foreground">Product Details</h3>
-              <ul className="space-y-2 text-muted-foreground text-sm">
-                <li>Premium quality fabric</li>
-                <li>Comfortable fit for all-day wear</li>
-                <li>Elegant design for any occasion</li>
-                <li>Easy care instructions</li>
+            <div className="pt-8 space-y-8">
+              <h3 className="font-brand text-4xl text-foreground">Product Details</h3>
+              <ul className="space-y-5 text-muted-foreground text-lg font-light leading-relaxed">
+                <li className="flex items-center gap-4">
+                  <span className="w-2 h-2 rounded-full bg-primary"></span>
+                  Premium quality fabric selected for comfort
+                </li>
+                <li className="flex items-center gap-4">
+                  <span className="w-2 h-2 rounded-full bg-primary"></span>
+                  Comfortable fit designed for all-day wear
+                </li>
+                <li className="flex items-center gap-4">
+                  <span className="w-2 h-2 rounded-full bg-primary"></span>
+                  Elegant design suitable for any occasion
+                </li>
+                <li className="flex items-center gap-4">
+                  <span className="w-2 h-2 rounded-full bg-primary"></span>
+                  Easy care instructions for longevity
+                </li>
               </ul>
             </div>
           </div>
