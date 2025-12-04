@@ -19,7 +19,7 @@ const sampleProducts = [
     imageFile: "abaya1.jpg",
     category: "abaya",
     color: "Black",
-    size: "M",
+    length: 140,
     isBestSeller: true,
   },
   {
@@ -28,7 +28,7 @@ const sampleProducts = [
     imageFile: "abaya2.jpg",
     category: "abaya",
     color: "Navy Blue",
-    size: "L",
+    length: 142,
     isBestSeller: true,
   },
   // ... add the rest of your products similarly
@@ -76,7 +76,7 @@ async function seed() {
       price: prod.price,
       category: prod.category,
       color: prod.color,
-      size: prod.size,
+      length: prod.length,
       isBestSeller: prod.isBestSeller,
       imageId: newImage.id,
     });

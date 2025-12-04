@@ -31,16 +31,16 @@ export class DatabaseStorage implements IStorage {
     category?: string,
     page: number = 1,
     limit: number = 12,
-    filters?: { search?: string; minPrice?: number; maxPrice?: number; color?: string; size?: string }
+    filters?: { search?: string; minPrice?: number; maxPrice?: number; color?: string; length?: number }
   ): Promise<{ products: Product[]; total: number }> {
-    const conditions = [];
+    const conditions = [] as any[];
 
     if (category) conditions.push(eq(products.category, category));
     if (filters?.search) conditions.push(ilike(products.name, `%${filters.search}%`));
     if (filters?.minPrice !== undefined) conditions.push(gte(products.price, filters.minPrice));
     if (filters?.maxPrice !== undefined) conditions.push(lte(products.price, filters.maxPrice));
     if (filters?.color) conditions.push(eq(products.color, filters.color));
-    if (filters?.size) conditions.push(eq(products.size, filters.size));
+    if (filters?.length !== undefined) conditions.push(eq(products.length, filters.length));
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -117,8 +117,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUniqueSizes(): Promise<string[]> {
-    const result = await db.selectDistinct({ size: products.size }).from(products).where(sql`${products.size} IS NOT NULL`);
-    return result.map(r => r.size).filter((s): s is string => s !== null);
+    const result = await db.selectDistinct({ length: products.length }).from(products).where(sql`${products.length} IS NOT NULL`);
+    return result.map(r => String(r.length)).filter((s): s is string => s !== null);
   }
 
   // ---------------- IMAGES ----------------

@@ -45,13 +45,13 @@ export default function ProductDetails() {
 
   const generateWhatsAppLink = () => {
     if (!product) return "#";
-    const details = [];
+    const details: string[] = [];
     details.push(`Product: ${product.name}`);
     details.push(`Unit Price: ${formatPrice(product.price)}`);
     details.push(`Quantity: ${quantity}`);
     const total = product.price * quantity;
     details.push(`Total: ${formatPrice(total)}`);
-    if (product.size) details.push(`Size: ${product.size}`);
+    if (product.length != null) details.push(`Length: ${product.length}`);
 
     const message = encodeURIComponent(
       `I would like to purchase:\n\n${details.join("\n")}\n\nPlease confirm availability.`
@@ -160,14 +160,14 @@ export default function ProductDetails() {
             </div>
 
             <div className="grid grid-cols-2 gap-6">
-              {product.size && (
+              {product.length != null && (
                 <div className="bg-secondary/20 rounded-3xl p-8 border border-secondary/30 text-center">
-                  <p className="text-xs text-muted-foreground mb-3 uppercase tracking-widest font-medium">Size</p>
+                  <p className="text-xs text-muted-foreground mb-3 uppercase tracking-widest font-medium">Length (cm)</p>
                   <p
                     className="font-medium text-foreground text-2xl"
-                    data-testid="text-product-size"
+                    data-testid="text-product-length"
                   >
-                    {product.size}
+                    {product.length}
                   </p>
                 </div>
               )}

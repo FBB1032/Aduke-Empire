@@ -40,7 +40,7 @@ export const products = pgTable("products", {
   imageId: integer("image_id").notNull(),
   category: text("category").notNull(),
   color: text("color"),
-  size: text("size"),
+  length: integer("length"),
   isBestSeller: boolean("is_best_seller").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -54,7 +54,7 @@ export const insertProductSchema = z.object({
     message: "Please select a category",
   }),
   color: z.string().optional().default(""),
-  size: z.string().optional().default(""),
+  length: z.coerce.number().optional(),
   isBestSeller: z.boolean().default(false),
 });
 
