@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { categoryLabels, type Product, type Category } from "@shared/schema";
+import quotes from "@/quotes.json";
 
 const WHATSAPP_PHONE = "2348154538190";
 
@@ -28,6 +29,7 @@ export default function ProductDetails() {
     { quote: "Perfect fit and fabric. Worth every naira.", author: "Zara" },
     { quote: "Fast response on WhatsApp and swift delivery.", author: "Maryam" },
   ];
+  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -231,6 +233,11 @@ export default function ProductDetails() {
                   <DialogTitle className="font-brand text-2xl">What our customers say</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-2">
+                  {/* Random elegant quote */}
+                  <blockquote className="p-4 rounded-2xl bg-white/10 border border-white/20 italic">
+                    <p className="text-lg">“{randomQuote}”</p>
+                  </blockquote>
+                  {/* Fixed short testimonials */}
                   {testimonials.map((t, i) => (
                     <blockquote key={i} className="p-4 rounded-2xl bg-white/10 border border-white/20 italic">
                       <p className="text-lg">“{t.quote}”</p>
