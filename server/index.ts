@@ -14,25 +14,61 @@ const dbPool = new Pool({
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
 });
 
+async function ensureSessionTable() {
+  // Create session table in public schema if missing (compatible with connect-pg-simple)
+  const createTableSQL = `
+    CREATE TABLE IF NOT EXISTS public.session (
+      sid varchar NOT NULL,
+      sess json NOT NULL,
+      expire timestamp(6) NOT NULL
+    );
+  `;
+  const addPkSQL = `
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM   pg_constraint
+        WHERE  conname = 'session_pkey'
+      ) THEN
+        ALTER TABLE public.session ADD CONSTRAINT session_pkey PRIMARY KEY (sid);
+      END IF;
+    END $$;
+  `;
+  const addIdxSQL = `
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM   pg_class c
+        JOIN   pg_index i ON i.indexrelid = c.oid
+        JOIN   pg_class t ON t.oid = i.indrelid
+        WHERE  c.relname = 'IDX_session_expire' AND t.relname = 'session'
+      ) THEN
+        CREATE INDEX "IDX_session_expire" ON public.session(expire);
+      END IF;
+    END $$;
+  `;
+  await dbPool.query(createTableSQL);
+  await dbPool.query(addPkSQL);
+  await dbPool.query(addIdxSQL);
+}
+
 // Lazily load connect-pg-simple in an ESM-compatible way
 async function createSessionStore() {
   const dbUrl = process.env.DATABASE_URL;
   try {
     if (!dbUrl) throw new Error("No DATABASE_URL provided");
 
-    // Probe DB connectivity before wiring session store
-    await dbPool.query("SELECT 1");
+    // Ensure table exists before wiring the store
+    await ensureSessionTable();
 
     const connectPgSimpleModule = await import("connect-pg-simple");
     const connectPgSimple = (connectPgSimpleModule as any).default ?? connectPgSimpleModule;
     const PgSession = connectPgSimple(session);
 
-    // Use Pool + explicit table name, mirroring the provided snippet
     return new PgSession({
       pool: dbPool,
       tableName: "session",
       schemaName: "public",
-      // Avoid reading table.sql from bundled dist; rely on migrations/SQL run in Supabase
       createTableIfMissing: false,
     });
   } catch (err) {
