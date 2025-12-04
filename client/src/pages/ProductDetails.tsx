@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
+import { useState } from "react";
 import { ArrowLeft, Star, Phone } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { categoryLabels, type Product, type Category } from "@shared/schema";
 
 const WHATSAPP_PHONE = "2348154538190";
@@ -17,6 +19,15 @@ export default function ProductDetails() {
     queryKey: [`/api/products/${productId}`],
     enabled: !!productId,
   });
+
+  const [quantity, setQuantity] = useState<number>(1);
+  const [showTestimonials, setShowTestimonials] = useState(false);
+
+  const testimonials = [
+    { quote: "Absolutely stunning quality. I felt elegant all day.", author: "Aisha" },
+    { quote: "Perfect fit and fabric. Worth every naira.", author: "Zara" },
+    { quote: "Fast response on WhatsApp and swift delivery.", author: "Maryam" },
+  ];
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -31,13 +42,21 @@ export default function ProductDetails() {
     if (!product) return "#";
     const details = [];
     details.push(`Product: ${product.name}`);
-    details.push(`Price: ${formatPrice(product.price)}`);
+    details.push(`Unit Price: ${formatPrice(product.price)}`);
+    details.push(`Quantity: ${quantity}`);
+    const total = product.price * quantity;
+    details.push(`Total: ${formatPrice(total)}`);
     if (product.size) details.push(`Size: ${product.size}`);
 
     const message = encodeURIComponent(
-      `I will love to purchase:\n\n${details.join('\n')}\n\nPlease confirm availability.`
+      `I would like to purchase:\n\n${details.join("\n")}\n\nPlease confirm availability.`
     );
     return `https://wa.me/${WHATSAPP_PHONE}?text=${message}`;
+  };
+
+  const handleWhatsAppClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Allow navigation, but show testimonials in the current tab
+    setShowTestimonials(true);
   };
 
   if (isLoading) {
@@ -147,6 +166,37 @@ export default function ProductDetails() {
                   </p>
                 </div>
               )}
+              <div className="bg-secondary/20 rounded-3xl p-8 border border-secondary/30 text-center">
+                <p className="text-xs text-muted-foreground mb-3 uppercase tracking-widest font-medium">Quantity</p>
+                <div className="flex items-center justify-center gap-3">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="rounded-full w-10 h-10" 
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))} 
+                    aria-label="Decrease quantity"
+                  >
+                    -
+                  </Button>
+                  <input
+                    type="number"
+                    min={1}
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-20 h-12 text-center rounded-2xl border-input/60 bg-white/60 text-foreground"
+                    aria-label="Quantity"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="rounded-full w-10 h-10" 
+                    onClick={() => setQuantity(q => q + 1)} 
+                    aria-label="Increase quantity"
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
             </div>
 
             <div className="pt-8 space-y-6 border-t border-primary/10">
@@ -156,6 +206,7 @@ export default function ProductDetails() {
                 rel="noopener noreferrer"
                 className="block"
                 data-testid="link-whatsapp-buy"
+                onClick={handleWhatsAppClick}
               >
                 <Button 
                   size="lg" 
@@ -172,6 +223,24 @@ export default function ProductDetails() {
                 We'll respond within minutes to confirm your order
               </p>
             </div>
+
+            {/* Testimonials modal */}
+            <Dialog open={showTestimonials} onOpenChange={setShowTestimonials}>
+              <DialogContent className="rounded-3xl bg-black/70 backdrop-blur-md border border-amber-300/30 text-foreground max-w-xl">
+                <DialogHeader>
+                  <DialogTitle className="font-brand text-2xl">What our customers say</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-2">
+                  {testimonials.map((t, i) => (
+                    <blockquote key={i} className="p-4 rounded-2xl bg-white/10 border border-white/20 italic">
+                      <p className="text-lg">“{t.quote}”</p>
+                      <cite className="block mt-2 text-sm text-muted-foreground">— {t.author}</cite>
+                    </blockquote>
+                  ))}
+                </div>
+                <div className="pt-4 text-sm text-muted-foreground">Aduke's Empire • Timeless modest fashion</div>
+              </DialogContent>
+            </Dialog>
 
             <div className="pt-8 space-y-8">
               <h3 className="font-brand text-4xl text-foreground">Product Details</h3>
