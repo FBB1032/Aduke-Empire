@@ -8,29 +8,31 @@ import { registerRoutes } from "./routes.js";
 import "dotenv/config";
 import { Pool } from "pg";
 
+// Create a shared pg Pool for sessions & DB checks
+const dbPool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
+});
+
 // Lazily load connect-pg-simple in an ESM-compatible way
 async function createSessionStore() {
   const dbUrl = process.env.DATABASE_URL;
   try {
-    if (!dbUrl) {
-      throw new Error("No DATABASE_URL provided");
-    }
+    if (!dbUrl) throw new Error("No DATABASE_URL provided");
 
     // Probe DB connectivity before wiring session store
-    const pool = new Pool({
-      connectionString: dbUrl,
-      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
-    });
-    await pool.query("SELECT 1");
-    await pool.end();
+    await dbPool.query("SELECT 1");
 
     const connectPgSimpleModule = await import("connect-pg-simple");
     const connectPgSimple = (connectPgSimpleModule as any).default ?? connectPgSimpleModule;
     const PgSession = connectPgSimple(session);
+
+    // Use Pool + explicit table name, mirroring the provided snippet
     return new PgSession({
-      conString: dbUrl,
+      pool: dbPool,
       tableName: "session",
-      // Avoid reading table.sql from bundled dist; rely on migrations instead
+      schemaName: "public",
+      // Avoid reading table.sql from bundled dist; rely on migrations/SQL run in Supabase
       createTableIfMissing: false,
     });
   } catch (err) {
@@ -42,6 +44,8 @@ async function createSessionStore() {
 }
 
 const app = express();
+// Trust Render/Proxy so secure cookies work correctly
+app.set("trust proxy", 1);
 const PORT = process.env.PORT || 5002;
 const __dirname = path.resolve();
 
