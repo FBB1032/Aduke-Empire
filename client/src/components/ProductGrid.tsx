@@ -11,7 +11,7 @@ export function ProductGrid({ products, isLoading, loadingCount = 8 }: ProductGr
   if (isLoading) {
     return (
       <div 
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+        className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8"
         data-testid="grid-products-loading"
       >
         {Array.from({ length: loadingCount }).map((_, i) => (
@@ -57,7 +57,7 @@ export function ProductGrid({ products, isLoading, loadingCount = 8 }: ProductGr
   return (
     <section className="max-w-7xl mx-auto px-4 md:px-6 py-12">
       <div 
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+        className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8"
         data-testid="grid-products"
       >
         {products.map((product) => (
