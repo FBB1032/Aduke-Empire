@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ArrowLeft, Star, Phone } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { Button } from "@/components/ui/button";
@@ -24,12 +24,15 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState<number>(1);
   const [showTestimonials, setShowTestimonials] = useState(false);
 
-  const testimonials = [
-    { quote: "Absolutely stunning quality. I felt elegant all day.", author: "Aisha" },
-    { quote: "Perfect fit and fabric. Worth every naira.", author: "Zara" },
-    { quote: "Fast response on WhatsApp and swift delivery.", author: "Maryam" },
-  ];
-  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+  // Pick three random quotes whenever the modal opens
+  const randomTestimonials = useMemo(() => {
+    const arr = [...quotes];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.slice(0, 3);
+  }, [showTestimonials]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -233,15 +236,9 @@ export default function ProductDetails() {
                   <DialogTitle className="font-brand text-2xl">What our customers say</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-2">
-                  {/* Random elegant quote */}
-                  <blockquote className="p-4 rounded-2xl bg-white/10 border border-white/20 italic">
-                    <p className="text-lg">“{randomQuote}”</p>
-                  </blockquote>
-                  {/* Fixed short testimonials */}
-                  {testimonials.map((t, i) => (
+                  {randomTestimonials.map((q, i) => (
                     <blockquote key={i} className="p-4 rounded-2xl bg-white/10 border border-white/20 italic">
-                      <p className="text-lg">“{t.quote}”</p>
-                      <cite className="block mt-2 text-sm text-muted-foreground">— {t.author}</cite>
+                      <p className="text-lg">“{q}”</p>
                     </blockquote>
                   ))}
                 </div>
