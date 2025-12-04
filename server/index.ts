@@ -30,7 +30,8 @@ async function createSessionStore() {
     return new PgSession({
       conString: dbUrl,
       tableName: "session",
-      createTableIfMissing: true,
+      // Avoid reading table.sql from bundled dist; rely on migrations instead
+      createTableIfMissing: false,
     });
   } catch (err) {
     console.error("DB unavailable for session store, falling back to memory store:", (err as Error)?.message);
