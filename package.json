@@ -77,7 +77,8 @@
     "@supabase/supabase-js": "^2.48.1",
     "tsx": "^4.20.6",
     "vite": "^7.2.6",
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.24.0",
+    "@vitejs/plugin-react": "^5.1.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",
