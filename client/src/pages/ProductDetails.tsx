@@ -159,10 +159,12 @@ export default function ProductDetails() {
               >
                 <Button 
                   size="lg" 
-                  className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white text-xl py-8 rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 font-medium tracking-wide"
+                  className="w-full rounded-full px-8 py-8 text-xl font-semibold tracking-wide bg-gradient-to-r from-[#25D366] to-[#1DA851] text-white shadow-[0_10px_30px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_36px_rgba(37,211,102,0.6)] hover:-translate-y-[2px] transition-all duration-300 border border-white/10 relative overflow-hidden"
                 >
-                  <SiWhatsapp className="w-7 h-7 mr-3" />
-                  Buy Now via WhatsApp
+                  <span className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.35),transparent_40%)]" />
+                  <span className="absolute inset-0 opacity-10 bg-[linear-gradient(120deg,rgba(255,255,255,0.25),transparent_40%,rgba(255,255,255,0.2))]" />
+                  <SiWhatsapp className="w-7 h-7 mr-3 flex-shrink-0" />
+                  <span className="relative z-10">Buy Now via WhatsApp</span>
                 </Button>
               </a>
               <p className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2 font-light">

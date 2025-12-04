@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { Phone, Mail, MapPin } from "lucide-react";
-import { SiWhatsapp, SiInstagram, SiFacebook } from "react-icons/si";
+import { SiWhatsapp, SiInstagram, SiTiktok } from "react-icons/si";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -22,27 +22,30 @@ export function Footer() {
                 href={`https://wa.me/${whatsappNumber}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-12 h-12 rounded-full bg-white text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-1"
+                className="w-12 h-12 rounded-full bg-[#25D366] text-white flex items-center justify-center ring-2 ring-[#25D366]/40 shadow-md hover:shadow-xl hover:brightness-110 hover:-translate-y-1 transition-all duration-300"
                 aria-label="WhatsApp"
                 data-testid="link-whatsapp"
+                title="WhatsApp"
               >
                 <SiWhatsapp className="w-6 h-6" />
               </a>
               <a
                 href="https://www.instagram.com/adukes_empire9?igsh=MXhiMGhmbHRrMnZuaw%3D%3D&utm_source=qr"
-                className="w-12 h-12 rounded-full bg-white text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-1"
+                className="w-12 h-12 rounded-full bg-gradient-to-br from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white flex items-center justify-center ring-2 ring-pink-400/40 shadow-md hover:shadow-xl hover:saturate-150 hover:-translate-y-1 transition-all duration-300"
                 aria-label="Instagram"
                 data-testid="link-instagram"
+                title="Instagram"
               >
                 <SiInstagram className="w-6 h-6" />
               </a>
               <a
                 href="#"
-                className="w-12 h-12 rounded-full bg-white text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-1"
-                aria-label="Facebook"
-                data-testid="link-facebook"
+                className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center ring-2 ring-white/20 shadow-md hover:shadow-xl hover:brightness-110 hover:-translate-y-1 transition-all duration-300"
+                aria-label="TikTok"
+                data-testid="link-tiktok"
+                title="TikTok"
               >
-                <SiFacebook className="w-6 h-6" />
+                <SiTiktok className="w-6 h-6" />
               </a>
             </div>
           </div>
@@ -103,8 +106,8 @@ export function Footer() {
             <h3 className="font-brand text-3xl text-foreground">Contact Us</h3>
             <ul className="space-y-5">
               <li className="flex items-center gap-4 text-base text-muted-foreground group">
-                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                  <Phone className="w-4 h-4" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-300 to-yellow-400 text-black flex items-center justify-center ring-2 ring-amber-400/40 group-hover:brightness-110 group-hover:ring-amber-400/60 transition-all shadow-md">
+                  <Phone className="w-5 h-5" />
                 </div>
                 <a 
                   href={`https://wa.me/${whatsappNumber}`}
@@ -117,14 +120,14 @@ export function Footer() {
                 </a>
               </li>
               <li className="flex items-center gap-4 text-base text-muted-foreground group">
-                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                  <Mail className="w-4 h-4" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-300 to-yellow-400 text-black flex items-center justify-center ring-2 ring-amber-400/40 group-hover:brightness-110 group-hover:ring-amber-400/60 transition-all shadow-md ">
+                  <Mail className="w-5 h-5" />
                 </div>
                 <span data-testid="text-email">Suleimanwasila873@gmail.com</span>
               </li>
               <li className="flex items-start gap-4 text-base text-muted-foreground group">
-                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-sm mt-0.5">
-                  <MapPin className="w-4 h-4" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-300 to-yellow-400 text-black flex items-center justify-center ring-2 ring-amber-400/40 group-hover:brightness-110 group-hover:ring-amber-400/60 transition-all shadow-md mt-0.5">
+                  <MapPin className="w-5 h-5" />
                 </div>
                 <span data-testid="text-address">NASSARAWA, Nigeria</span>
               </li>
