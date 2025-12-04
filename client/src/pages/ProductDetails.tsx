@@ -105,10 +105,10 @@ export default function ProductDetails() {
             />
             {product.isBestSeller && (
               <Badge 
-                className="absolute top-8 right-8 bg-white/90 text-primary hover:bg-white gap-2 shadow-lg backdrop-blur-md px-5 py-2 text-sm uppercase tracking-wider font-semibold border border-primary/10 rounded-full"
+                className="absolute top-6 right-6 md:top-8 md:right-8 bg-gradient-to-r from-amber-300 to-yellow-400 text-black px-4 md:px-5 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-extrabold uppercase tracking-wider ring-2 ring-amber-400/60 shadow-[0_6px_20px_rgba(251,191,36,0.55)] border border-amber-200/50 gap-2"
                 data-testid="badge-bestseller"
               >
-                <Star className="w-4 h-4 fill-primary" />
+                <Star className="w-4 h-4 mr-1.5 fill-amber-600 text-amber-700" />
                 Best Seller
               </Badge>
             )}

@@ -20,8 +20,11 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="relative aspect-4/5 overflow-hidden">
           <img src={`/api/images/${product.imageId}`} alt={product.name} className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500" loading="lazy" />
           {product.isBestSeller && (
-            <Badge className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold bg-rose-300/90 text-black shadow" data-testid={`badge-bestseller-${product.id}`}>
-              <Star className="w-3 h-3 mr-1 text-black" />
+            <Badge
+              className="absolute top-3 left-3 md:top-4 md:left-4 px-3 md:px-4 py-1.5 rounded-full text-[10px] md:text-xs font-extrabold uppercase tracking-wider bg-gradient-to-r from-amber-300 to-yellow-400 text-black ring-2 ring-amber-400/60 shadow-[0_4px_16px_rgba(251,191,36,0.55)]"
+              data-testid={`badge-bestseller-${product.id}`}
+           >
+              <Star className="w-3.5 h-3.5 mr-1.5 fill-amber-600 text-amber-700" />
               Best Seller
             </Badge>
           )}

@@ -416,8 +416,9 @@ export default function AdminPanel() {
                             {product.isBestSeller && (
                               <>
                                 <span className="text-primary/20">•</span>
-                                <span className="flex items-center text-amber-600 text-xs font-medium bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
-                                  <Star className="w-3 h-3 mr-1.5 fill-amber-400 text-amber-400" /> Best Seller
+                                <span className="flex items-center gap-1.5 text-black text-xs md:text-sm font-extrabold uppercase tracking-wider bg-gradient-to-r from-amber-300 to-yellow-400 px-3.5 py-1.5 rounded-full ring-2 ring-amber-400/60 shadow-[0_4px_16px_rgba(251,191,36,0.55)] border border-amber-200/50">
+                                  <Star className="w-3.5 h-3.5 mr-0.5 fill-amber-600 text-amber-700" />
+                                  Best Seller
                                 </span>
                               </>
                             )}
