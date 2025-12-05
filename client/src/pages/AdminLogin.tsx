@@ -36,14 +36,10 @@ export default function AdminLogin() {
     setIsLoading(true);
     try {
       await apiRequest("POST", "/api/auth/login", data);
-
-      const auth = await apiRequest("GET", "/api/auth/check");
-      if (auth?.authenticated) {
-        toast({ title: "Welcome back!", description: "You have successfully logged in." });
-        setLocation("/admin");
-        return;
-      }
-      toast({ title: "Login failed", description: "Authentication failed. Please try again.", variant: "destructive" });
+      toast({ title: "Welcome back!", description: "You have successfully logged in." });
+      // Redirect immediately; cookie persistence can lag an auth check call on Render
+      setLocation("/admin");
+      return;
     } catch (error) {
       toast({ title: "Login failed", description: "Invalid email or password. Please try again.", variant: "destructive" });
     } finally {
