@@ -33,6 +33,9 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="p-4 md:p-6">
           <h3 className="text-rose-100 text-xl font-[cursive] drop-shadow-sm line-clamp-1" data-testid={`text-product-name-${product.id}`}>{product.name}</h3>
           <p className="mt-1 text-rose-200/80 text-xs uppercase tracking-widest">{product.category}</p>
+          {product.length != null && (
+            <p className="mt-1 text-rose-200/80 text-xs uppercase tracking-widest">Length: {product.length} cm</p>
+          )}
           <div className="mt-4 flex items-center justify-between">
             <span className="text-rose-100 text-lg" data-testid={`text-product-price-${product.id}`}>{formatPrice(product.price)}</span>
             <Link href={`/product/${product.id}`}>
