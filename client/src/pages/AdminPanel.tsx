@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
-import { FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -18,7 +18,7 @@ type ProductForm = {
   isBestSeller: boolean;
 };
 
-function ProductForm({ editingProduct, onSuccess }: { editingProduct?: any; onSuccess?: () => void }) {
+function ProductFormComponent({ editingProduct, onSuccess }: { editingProduct?: any; onSuccess?: () => void }) {
   const [imagePreview, setImagePreview] = useState<string | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,11 +48,8 @@ function ProductForm({ editingProduct, onSuccess }: { editingProduct?: any; onSu
     }
   }, [editingProduct, form]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const data = form.getValues();
+  const handleSubmit = async (data: ProductForm) => {
     setIsSubmitting(true);
-
     try {
       const formData = new FormData();
       formData.append("name", data.name);
@@ -88,103 +85,116 @@ function ProductForm({ editingProduct, onSuccess }: { editingProduct?: any; onSu
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <FormItem>
-            <FormLabel className="text-foreground/70 font-medium text-sm">Product Name *</FormLabel>
-            <Input
-              placeholder="Enter product name"
-              value={form.getValues("name")}
-              onChange={(e) => form.setValue("name", e.target.value)}
-              className="border-secondary/20 focus:border-primary/50 rounded-lg h-10"
-              required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground/70 font-medium text-sm">Product Name *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter product name" {...field} className="border-secondary/20 focus:border-primary/50 rounded-lg h-10" required />
+                  </FormControl>
+                </FormItem>
+              )}
             />
-          </FormItem>
 
-          <FormItem>
-            <FormLabel className="text-foreground/70 font-medium text-sm">Price (AED) *</FormLabel>
-            <Input
-              type="number"
-              placeholder="0"
-              step="0.01"
-              value={form.getValues("price")}
-              onChange={(e) => form.setValue("price", Number(e.target.value))}
-              className="border-secondary/20 focus:border-primary/50 rounded-lg h-10"
-              required
+            <FormField
+              control={form.control}
+              name="price"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground/70 font-medium text-sm">Price (AED) *</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="0" step="0.01" {...field} onChange={(e) => field.onChange(Number(e.target.value))} className="border-secondary/20 focus:border-primary/50 rounded-lg h-10" required />
+                  </FormControl>
+                </FormItem>
+              )}
             />
-          </FormItem>
 
-          <FormItem>
-            <FormLabel className="text-foreground/70 font-medium text-sm">Category *</FormLabel>
-            <Select value={form.getValues("category")} onValueChange={(value) => form.setValue("category", value as any)}>
-              <SelectTrigger className="border-secondary/20 focus:border-primary/50 rounded-lg h-10">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="abaya">Abaya</SelectItem>
-                <SelectItem value="scarf">Scarf</SelectItem>
-                <SelectItem value="jallabiya">Jallabiya</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormItem>
-
-          <FormItem>
-            <FormLabel className="text-foreground/70 font-medium text-sm">Color</FormLabel>
-            <Input
-              placeholder="e.g., Black, Navy"
-              value={form.getValues("color")}
-              onChange={(e) => form.setValue("color", e.target.value)}
-              className="border-secondary/20 focus:border-primary/50 rounded-lg h-10"
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground/70 font-medium text-sm">Category *</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="border-secondary/20 focus:border-primary/50 rounded-lg h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="abaya">Abaya</SelectItem>
+                      <SelectItem value="scarf">Scarf</SelectItem>
+                      <SelectItem value="jallabiya">Jallabiya</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
             />
-          </FormItem>
 
-          <FormItem>
-            <FormLabel className="text-foreground/70 font-medium text-sm">Length (cm)</FormLabel>
-            <Input
-              type="number"
-              placeholder="e.g., 140"
-              value={form.getValues("length") || ""}
-              onChange={(e) => form.setValue("length", e.target.value ? Number(e.target.value) : undefined)}
-              className="border-secondary/20 focus:border-primary/50 rounded-lg h-10"
+            <FormField
+              control={form.control}
+              name="color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground/70 font-medium text-sm">Color</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Black, Navy" {...field} className="border-secondary/20 focus:border-primary/50 rounded-lg h-10" />
+                  </FormControl>
+                </FormItem>
+              )}
             />
-          </FormItem>
 
-          <FormItem>
-            <FormLabel className="text-foreground/70 font-medium text-sm">Product Image {!editingProduct && "*"}</FormLabel>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  form.setValue("image", file);
-                  setImagePreview(URL.createObjectURL(file));
-                }
-              }}
-              className="border-secondary/20 focus:border-primary/50 rounded-lg h-10"
+            <FormField
+              control={form.control}
+              name="length"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground/70 font-medium text-sm">Length (cm)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="e.g., 140" {...field} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} className="border-secondary/20 focus:border-primary/50 rounded-lg h-10" />
+                  </FormControl>
+                </FormItem>
+              )}
             />
-            {imagePreview && (
-              <div className="mt-3">
-                <img src={imagePreview} alt="Preview" className="h-24 w-24 object-cover rounded-lg border border-secondary/20" />
-              </div>
-            )}
-          </FormItem>
 
-          <FormItem className="flex items-center gap-3 pt-2">
-            <Checkbox
-              checked={form.getValues("isBestSeller")}
-              onCheckedChange={(checked) => form.setValue("isBestSeller", checked as boolean)}
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field: { onChange } }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground/70 font-medium text-sm">Product Image {!editingProduct && "*"}</FormLabel>
+                  <FormControl>
+                    <div>
+                      <Input type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) { onChange(file); setImagePreview(URL.createObjectURL(file)); } }} className="border-secondary/20 focus:border-primary/50 rounded-lg h-10" />
+                      {imagePreview && <div className="mt-3"><img src={imagePreview} alt="Preview" className="h-24 w-24 object-cover rounded-lg border border-secondary/20" /></div>}
+                    </div>
+                  </FormControl>
+                </FormItem>
+              )}
             />
-            <FormLabel className="text-foreground/70 font-medium text-sm !m-0">Mark as Best Seller</FormLabel>
-          </FormItem>
 
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-medium text-base h-11 mt-6 rounded-full transition-all duration-300"
-          >
-            {isSubmitting ? "Saving..." : editingProduct ? "Update Product" : "Create Product"}
-          </Button>
-        </form>
+            <FormField
+              control={form.control}
+              name="isBestSeller"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-3 pt-2">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <FormLabel className="text-foreground/70 font-medium text-sm !m-0">Mark as Best Seller</FormLabel>
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" disabled={isSubmitting} className="w-full bg-primary hover:bg-primary/90 text-white font-medium text-base h-11 mt-6 rounded-full transition-all duration-300">
+              {isSubmitting ? "Saving..." : editingProduct ? "Update Product" : "Create Product"}
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );
@@ -198,28 +208,23 @@ export default function AdminPanel() {
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
 
   useEffect(() => {
-    console.log("AdminPanel: Checking authentication");
     checkAuth();
   }, []);
 
   const checkAuth = async () => {
     try {
-      console.log("AdminPanel: Fetching /api/auth/check");
       const res = await fetch("/api/auth/check", { credentials: "include" });
       const data = await res.json();
-      console.log("AdminPanel: Auth response", data);
       
       if (data.authenticated) {
-        console.log("AdminPanel: User is authenticated");
         setIsAuth(true);
         loadProducts();
       } else {
-        console.log("AdminPanel: User not authenticated, redirecting");
         setIsAuth(false);
         setLocation("/admin-login");
       }
     } catch (err) {
-      console.error("AdminPanel: Auth error", err);
+      console.error("Auth error:", err);
       setIsAuth(false);
       setLocation("/admin-login");
     } finally {
@@ -229,13 +234,11 @@ export default function AdminPanel() {
 
   const loadProducts = async () => {
     try {
-      console.log("AdminPanel: Loading products");
       const res = await fetch("/api/products?limit=100", { credentials: "include" });
       const data = await res.json();
-      console.log("AdminPanel: Products loaded", data);
       setProducts(data.products || []);
     } catch (err) {
-      console.error("AdminPanel: Load products error", err);
+      console.error("Load products error:", err);
     }
   };
 
@@ -265,83 +268,63 @@ export default function AdminPanel() {
     );
   }
 
-  if (isAuth === false) {
+  if (!isAuth) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center space-y-4">
-          <p className="text-foreground/70 text-lg font-light">Not authenticated</p>
-          <p className="text-foreground/50 text-sm">Redirecting to login...</p>
+          <p className="text-foreground/70 text-lg font-light">Checking authentication...</p>
         </div>
       </div>
     );
   }
 
-  if (isAuth === true) {
-    return (
-      <div className="min-h-screen bg-background py-8 lg:py-12">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="flex justify-between items-center mb-8 lg:mb-12">
-            <h1 className="text-4xl lg:text-5xl font-light text-primary">Admin Panel</h1>
-            <Button onClick={handleLogout} variant="outline" className="border-primary/30 text-primary hover:bg-primary hover:text-white rounded-full px-6 h-11 font-medium transition-all duration-300">
-              Logout
-            </Button>
+  return (
+    <div className="min-h-screen bg-background py-8 lg:py-12">
+      <div className="max-w-7xl mx-auto px-4 lg:px-8">
+        <div className="flex justify-between items-center mb-8 lg:mb-12">
+          <h1 className="text-4xl lg:text-5xl font-light text-primary">Admin Panel</h1>
+          <Button onClick={handleLogout} variant="outline" className="border-primary/30 text-primary hover:bg-primary hover:text-white rounded-full px-6 h-11 font-medium transition-all duration-300">
+            Logout
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <ProductFormComponent editingProduct={editingProduct} onSuccess={() => { loadProducts(); setEditingProduct(null); }} />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <ProductForm
-                editingProduct={editingProduct}
-                onSuccess={() => {
-                  loadProducts();
-                  setEditingProduct(null);
-                }}
-              />
-            </div>
-
-            <div>
-              <Card className="bg-background border border-secondary/20 shadow-sm rounded-lg">
-                <CardHeader className="border-b border-secondary/10 bg-secondary/5">
-                  <CardTitle className="text-primary text-xl font-light">Products ({products.length})</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {products.length === 0 ? (
-                      <p className="text-foreground/50 font-light text-center py-8">No products yet</p>
-                    ) : (
-                      products.map((p) => (
-                        <div key={p.id} className="p-4 border border-secondary/10 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors">
-                          <p className="font-medium text-foreground text-sm">{p.name}</p>
-                          <p className="text-xs text-foreground/60 mt-1">{p.category}</p>
-                          <p className="text-sm font-semibold text-primary mt-1">{p.price} AED</p>
-                          <div className="flex gap-2 mt-3">
-                            <Button
-                              onClick={() => setEditingProduct(p)}
-                              size="sm"
-                              variant="outline"
-                              className="flex-1 border-primary/30 text-primary hover:bg-primary/10 rounded-full font-medium transition-all duration-300"
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              onClick={() => handleDelete(p.id)}
-                              size="sm"
-                              className="flex-1 bg-destructive/20 text-destructive hover:bg-destructive/30 rounded-full font-medium transition-all duration-300"
-                            >
-                              Delete
-                            </Button>
-                          </div>
+          <div>
+            <Card className="bg-background border border-secondary/20 shadow-sm rounded-lg">
+              <CardHeader className="border-b border-secondary/10 bg-secondary/5">
+                <CardTitle className="text-primary text-xl font-light">Products ({products.length})</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {products.length === 0 ? (
+                    <p className="text-foreground/50 font-light text-center py-8">No products yet</p>
+                  ) : (
+                    products.map((p) => (
+                      <div key={p.id} className="p-4 border border-secondary/10 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors">
+                        <p className="font-medium text-foreground text-sm">{p.name}</p>
+                        <p className="text-xs text-foreground/60 mt-1">{p.category}</p>
+                        <p className="text-sm font-semibold text-primary mt-1">{p.price} AED</p>
+                        <div className="flex gap-2 mt-3">
+                          <Button onClick={() => setEditingProduct(p)} size="sm" variant="outline" className="flex-1 border-primary/30 text-primary hover:bg-primary/10 rounded-full font-medium transition-all duration-300">
+                            Edit
+                          </Button>
+                          <Button onClick={() => handleDelete(p.id)} size="sm" className="flex-1 bg-destructive/20 text-destructive hover:bg-destructive/30 rounded-full font-medium transition-all duration-300">
+                            Delete
+                          </Button>
                         </div>
-                      ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 }

@@ -1,9 +1,10 @@
-# TODO: Fix Admin Panel Authentication Issue
-
-## Steps to Complete
-- [ ] Add authentication check to AdminPanel.tsx component
-- [ ] Implement useEffect to call /api/auth/check on component mount
-- [ ] Add state for authentication status and loading
-- [ ] Redirect to /admin-login if not authenticated
-- [ ] Conditionally render the admin panel content based on auth status
-- [x] Test the authentication flow
+- [ ] Wrap the form in <Form {...form}> to provide FormProvider
+- [ ] Convert FormItem for name field to FormField with Controller
+- [ ] Convert FormItem for price field to FormField with Controller
+- [ ] Convert FormItem for category field to FormField with Controller
+- [ ] Convert FormItem for color field to FormField with Controller
+- [ ] Convert FormItem for length field to FormField with Controller
+- [ ] Convert FormItem for image field to FormField with Controller
+- [ ] Convert FormItem for isBestSeller checkbox to FormField with Controller
+- [ ] Update imports to include Form from ui/form
+- [ ] Test the form functionality after changes
