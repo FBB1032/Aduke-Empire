@@ -198,22 +198,28 @@ export default function AdminPanel() {
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
 
   useEffect(() => {
+    console.log("AdminPanel: Checking authentication");
     checkAuth();
   }, []);
 
   const checkAuth = async () => {
     try {
+      console.log("AdminPanel: Fetching /api/auth/check");
       const res = await fetch("/api/auth/check", { credentials: "include" });
       const data = await res.json();
+      console.log("AdminPanel: Auth response", data);
+      
       if (data.authenticated) {
+        console.log("AdminPanel: User is authenticated");
         setIsAuth(true);
         loadProducts();
       } else {
+        console.log("AdminPanel: User not authenticated, redirecting");
         setIsAuth(false);
         setLocation("/admin-login");
       }
     } catch (err) {
-      console.error("Auth error:", err);
+      console.error("AdminPanel: Auth error", err);
       setIsAuth(false);
       setLocation("/admin-login");
     } finally {
@@ -223,11 +229,13 @@ export default function AdminPanel() {
 
   const loadProducts = async () => {
     try {
+      console.log("AdminPanel: Loading products");
       const res = await fetch("/api/products?limit=100", { credentials: "include" });
       const data = await res.json();
+      console.log("AdminPanel: Products loaded", data);
       setProducts(data.products || []);
     } catch (err) {
-      console.error("Load products error:", err);
+      console.error("AdminPanel: Load products error", err);
     }
   };
 
@@ -257,72 +265,83 @@ export default function AdminPanel() {
     );
   }
 
-  if (!isAuth) {
-    return <div className="flex items-center justify-center min-h-screen bg-background"><p className="text-foreground/70">Redirecting...</p></div>;
+  if (isAuth === false) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center space-y-4">
+          <p className="text-foreground/70 text-lg font-light">Not authenticated</p>
+          <p className="text-foreground/50 text-sm">Redirecting to login...</p>
+        </div>
+      </div>
+    );
   }
 
-  return (
-    <div className="min-h-screen bg-background py-8 lg:py-12">
-      <div className="max-w-7xl mx-auto px-4 lg:px-8">
-        <div className="flex justify-between items-center mb-8 lg:mb-12">
-          <h1 className="text-4xl lg:text-5xl font-light text-primary">Admin Panel</h1>
-          <Button onClick={handleLogout} variant="outline" className="border-primary/30 text-primary hover:bg-primary hover:text-white rounded-full px-6 h-11 font-medium transition-all duration-300">
-            Logout
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <ProductForm
-              editingProduct={editingProduct}
-              onSuccess={() => {
-                loadProducts();
-                setEditingProduct(null);
-              }}
-            />
+  if (isAuth === true) {
+    return (
+      <div className="min-h-screen bg-background py-8 lg:py-12">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
+          <div className="flex justify-between items-center mb-8 lg:mb-12">
+            <h1 className="text-4xl lg:text-5xl font-light text-primary">Admin Panel</h1>
+            <Button onClick={handleLogout} variant="outline" className="border-primary/30 text-primary hover:bg-primary hover:text-white rounded-full px-6 h-11 font-medium transition-all duration-300">
+              Logout
+            </Button>
           </div>
 
-          <div>
-            <Card className="bg-background border border-secondary/20 shadow-sm rounded-lg">
-              <CardHeader className="border-b border-secondary/10 bg-secondary/5">
-                <CardTitle className="text-primary text-xl font-light">Products ({products.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {products.length === 0 ? (
-                    <p className="text-foreground/50 font-light text-center py-8">No products yet</p>
-                  ) : (
-                    products.map((p) => (
-                      <div key={p.id} className="p-4 border border-secondary/10 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors">
-                        <p className="font-medium text-foreground text-sm">{p.name}</p>
-                        <p className="text-xs text-foreground/60 mt-1">{p.category}</p>
-                        <p className="text-sm font-semibold text-primary mt-1">{p.price} AED</p>
-                        <div className="flex gap-2 mt-3">
-                          <Button
-                            onClick={() => setEditingProduct(p)}
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 border-primary/30 text-primary hover:bg-primary/10 rounded-full font-medium transition-all duration-300"
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            onClick={() => handleDelete(p.id)}
-                            size="sm"
-                            className="flex-1 bg-destructive/20 text-destructive hover:bg-destructive/30 rounded-full font-medium transition-all duration-300"
-                          >
-                            Delete
-                          </Button>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <ProductForm
+                editingProduct={editingProduct}
+                onSuccess={() => {
+                  loadProducts();
+                  setEditingProduct(null);
+                }}
+              />
+            </div>
+
+            <div>
+              <Card className="bg-background border border-secondary/20 shadow-sm rounded-lg">
+                <CardHeader className="border-b border-secondary/10 bg-secondary/5">
+                  <CardTitle className="text-primary text-xl font-light">Products ({products.length})</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {products.length === 0 ? (
+                      <p className="text-foreground/50 font-light text-center py-8">No products yet</p>
+                    ) : (
+                      products.map((p) => (
+                        <div key={p.id} className="p-4 border border-secondary/10 rounded-lg bg-secondary/5 hover:bg-secondary/10 transition-colors">
+                          <p className="font-medium text-foreground text-sm">{p.name}</p>
+                          <p className="text-xs text-foreground/60 mt-1">{p.category}</p>
+                          <p className="text-sm font-semibold text-primary mt-1">{p.price} AED</p>
+                          <div className="flex gap-2 mt-3">
+                            <Button
+                              onClick={() => setEditingProduct(p)}
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 border-primary/30 text-primary hover:bg-primary/10 rounded-full font-medium transition-all duration-300"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              onClick={() => handleDelete(p.id)}
+                              size="sm"
+                              className="flex-1 bg-destructive/20 text-destructive hover:bg-destructive/30 rounded-full font-medium transition-all duration-300"
+                            >
+                              Delete
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 }
