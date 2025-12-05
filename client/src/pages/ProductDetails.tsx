@@ -24,7 +24,6 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState<number>(1);
   const [showTestimonials, setShowTestimonials] = useState(false);
 
-  // Pick three random quotes whenever the modal opens
   const randomTestimonials = useMemo(() => {
     const arr = [...quotes];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -51,7 +50,8 @@ export default function ProductDetails() {
     details.push(`Quantity: ${quantity}`);
     const total = product.price * quantity;
     details.push(`Total: ${formatPrice(total)}`);
-    if (product.length != null) details.push(`Length: ${product.length}`);
+    if (product.color) details.push(`Color: ${product.color}`);
+    if (product.length != null) details.push(`Length: ${product.length} cm`);
 
     const message = encodeURIComponent(
       `I would like to purchase:\n\n${details.join("\n")}\n\nPlease confirm availability.`
@@ -60,7 +60,6 @@ export default function ProductDetails() {
   };
 
   const handleWhatsAppClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // Allow navigation, but show testimonials in the current tab
     setShowTestimonials(true);
   };
 
@@ -160,13 +159,18 @@ export default function ProductDetails() {
             </div>
 
             <div className="grid grid-cols-2 gap-6">
+              {product.color && (
+                <div className="bg-secondary/20 rounded-3xl p-8 border border-secondary/30 text-center">
+                  <p className="text-xs text-muted-foreground mb-3 uppercase tracking-widest font-medium">Color</p>
+                  <p className="font-medium text-foreground text-2xl capitalize" data-testid="text-product-color">
+                    {product.color}
+                  </p>
+                </div>
+              )}
               {product.length != null && (
                 <div className="bg-secondary/20 rounded-3xl p-8 border border-secondary/30 text-center">
                   <p className="text-xs text-muted-foreground mb-3 uppercase tracking-widest font-medium">Length (cm)</p>
-                  <p
-                    className="font-medium text-foreground text-2xl"
-                    data-testid="text-product-length"
-                  >
+                  <p className="font-medium text-foreground text-2xl" data-testid="text-product-length">
                     {product.length}
                   </p>
                 </div>
@@ -174,49 +178,16 @@ export default function ProductDetails() {
               <div className="bg-secondary/20 rounded-3xl p-8 border border-secondary/30 text-center">
                 <p className="text-xs text-muted-foreground mb-3 uppercase tracking-widest font-medium">Quantity</p>
                 <div className="flex items-center justify-center gap-3">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="rounded-full w-10 h-10" 
-                    onClick={() => setQuantity(q => Math.max(1, q - 1))} 
-                    aria-label="Decrease quantity"
-                  >
-                    -
-                  </Button>
-                  <input
-                    type="number"
-                    min={1}
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-20 h-12 text-center rounded-2xl border-input/60 bg-white/60 text-foreground"
-                    aria-label="Quantity"
-                  />
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="rounded-full w-10 h-10" 
-                    onClick={() => setQuantity(q => q + 1)} 
-                    aria-label="Increase quantity"
-                  >
-                    +
-                  </Button>
+                  <Button type="button" variant="outline" className="rounded-full w-10 h-10" onClick={() => setQuantity(q => Math.max(1, q - 1))} aria-label="Decrease quantity">-</Button>
+                  <input type="number" min={1} value={quantity} onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-20 h-12 text-center rounded-2xl border-input/60 bg-white/60 text-foreground" aria-label="Quantity" />
+                  <Button type="button" variant="outline" className="rounded-full w-10 h-10" onClick={() => setQuantity(q => q + 1)} aria-label="Increase quantity">+</Button>
                 </div>
               </div>
             </div>
 
             <div className="pt-8 space-y-6 border-t border-primary/10">
-              <a
-                href={generateWhatsAppLink()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block"
-                data-testid="link-whatsapp-buy"
-                onClick={handleWhatsAppClick}
-              >
-                <Button 
-                  size="lg" 
-                  className="w-full rounded-full px-8 py-8 text-xl font-semibold tracking-wide bg-gradient-to-r from-[#25D366] to-[#1DA851] text-white shadow-[0_10px_30px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_36px_rgba(37,211,102,0.6)] hover:-translate-y-[2px] transition-all duration-300 border border-white/10 relative overflow-hidden"
-                >
+              <a href={generateWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="block" data-testid="link-whatsapp-buy" onClick={handleWhatsAppClick}>
+                <Button size="lg" className="w-full rounded-full px-8 py-8 text-xl font-semibold tracking-wide bg-gradient-to-r from-[#25D366] to-[#1DA851] text-white shadow-[0_10px_30px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_36px_rgba(37,211,102,0.6)] hover:-translate-y-[2px] transition-all duration-300 border border-white/10 relative overflow-hidden">
                   <span className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.35),transparent_40%)]" />
                   <span className="absolute inset-0 opacity-10 bg-[linear-gradient(120deg,rgba(255,255,255,0.25),transparent_40%,rgba(255,255,255,0.2))]" />
                   <SiWhatsapp className="w-7 h-7 mr-3 flex-shrink-0" />
@@ -229,7 +200,6 @@ export default function ProductDetails() {
               </p>
             </div>
 
-            {/* Testimonials modal */}
             <Dialog open={showTestimonials} onOpenChange={setShowTestimonials}>
               <DialogContent className="rounded-3xl bg-black/70 backdrop-blur-md border border-amber-300/30 text-foreground max-w-xl">
                 <DialogHeader>
@@ -238,7 +208,7 @@ export default function ProductDetails() {
                 <div className="space-y-4 pt-2">
                   {randomTestimonials.map((q, i) => (
                     <blockquote key={i} className="p-4 rounded-2xl bg-white/10 border border-white/20 italic">
-                      <p className="text-lg">“{q}”</p>
+                      <p className="text-lg">"{q}"</p>
                     </blockquote>
                   ))}
                 </div>

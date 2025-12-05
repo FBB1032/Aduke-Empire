@@ -92,9 +92,9 @@ export async function registerRoutes(app: Express) {
       const minPrice = req.query.minPrice ? parseInt(req.query.minPrice as string) : undefined;
       const maxPrice = req.query.maxPrice ? parseInt(req.query.maxPrice as string) : undefined;
       const color = req.query.color as string | undefined;
-      const size = req.query.size as string | undefined;
+      const length = req.query.length ? parseInt(req.query.length as string) : undefined;
 
-      const filters = { search, minPrice, maxPrice, color, size };
+      const filters = { search, minPrice, maxPrice, color, length };
       const result = await dbStorage.getProducts(category, page, limit, filters);
       res.json(result);
     } catch (err) {
@@ -133,7 +133,7 @@ export async function registerRoutes(app: Express) {
   // ---------- CREATE PRODUCT ----------
   app.post("/api/products", requireAuth, upload.single("image"), async (req, res) => {
     try {
-      const { name, price, category, color, size, isBestSeller } = req.body;
+      const { name, price, category, color, length, isBestSeller } = req.body;
       const imageBuffer = req.file?.buffer;
 
       const parsed = insertProductSchema.safeParse({
@@ -141,7 +141,7 @@ export async function registerRoutes(app: Express) {
         price: Number(price),
         category,
         color,
-        size,
+        length,
         isBestSeller: isBestSeller === "true",
         image: imageBuffer,
       });
@@ -164,7 +164,7 @@ export async function registerRoutes(app: Express) {
       const id = parseInt(req.params.id);
       if (isNaN(id)) return res.status(400).json({ error: "Invalid product ID" });
 
-      const { name, price, category, color, size, isBestSeller } = req.body;
+      const { name, price, category, color, length, isBestSeller } = req.body;
       const imageBuffer = req.file?.buffer;
 
       const updateData: any = {
@@ -172,7 +172,7 @@ export async function registerRoutes(app: Express) {
         price: price ? Number(price) : undefined,
         category,
         color,
-        size,
+        length: length ? Number(length) : undefined,
         isBestSeller: isBestSeller ? isBestSeller === "true" : undefined,
       };
 

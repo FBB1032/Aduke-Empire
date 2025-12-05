@@ -12,7 +12,7 @@ CREATE TABLE "products" (
 	"image_id" integer NOT NULL,
 	"category" text NOT NULL,
 	"color" text,
-	"size" text,
+	"length" integer,
 	"is_best_seller" boolean DEFAULT false,
 	"created_at" timestamp DEFAULT now()
 );
