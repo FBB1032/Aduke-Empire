@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, integer, boolean, timestamp, customType } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, json, customType } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 // Custom bytea type for image storage
@@ -73,3 +73,10 @@ export const categoryLabels: Record<Category, string> = {
   scarf: "Scarf",
   jallabiya: "Jallabiya",
 };
+
+// ----------------- SESSION -----------------
+export const session = pgTable("session", {
+  sid: varchar("sid").primaryKey().notNull(),
+  sess: json("sess").notNull(),
+  expire: timestamp("expire").notNull(),
+});
